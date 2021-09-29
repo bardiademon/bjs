@@ -1,7 +1,6 @@
 package com.bardiademon.JavaServer.bardiademon;
 
 import java.io.File;
-import java.util.Arrays;
 
 public final class Path
 {
@@ -19,8 +18,13 @@ public final class Path
     public static final String DEFAULT_STATIC_PATH = Get (ROOT , "static");
 
     public static final String TEMPLATE_NAME = "template";
+    public static String publicName = "public";
+    public static String publicPath;
 
-    public static String TEMPLATE ;
+    public static String TEMPLATE;
+    public static String PUBLIC;
+
+    public static String favicon;
 
     public static void setDefaultStaticPath ()
     {
@@ -30,6 +34,11 @@ public final class Path
     public static void setTemplatePath ()
     {
         TEMPLATE = Get (staticPath , TEMPLATE_NAME);
+    }
+
+    public static void setPublicPath ()
+    {
+        publicPath = Get (staticPath , publicName);
     }
 
     public static String Get (Object... paths)

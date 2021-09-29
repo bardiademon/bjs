@@ -3,14 +3,15 @@ package com.bardiademon.JavaServer.Server;
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.bardiademon.Time;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public final class HttpResponse
 
     private String text;
     private int statusCode = 200;
-    private String contentType;
+    private String contentType = HttpRequest.CT_TEXT_PLAIN;
     private final Map <String, String> headers;
     private Charset charset = StandardCharsets.UTF_8;
 
@@ -78,7 +79,7 @@ public final class HttpResponse
 
     private String htmlFile;
 
-    private ResponseType responseType;
+    private ResponseType responseType = ResponseType.text;
 
     public HttpResponse ()
     {
@@ -140,6 +141,38 @@ public final class HttpResponse
     public static void bardiademon (final OutputStream outputStream) throws Handler.HandlerException
     {
         writeText (outputStream , "bardiademon" , 200);
+    }
+
+    public static void writeFile (final OutputStream outputStream , final File file) throws Handler.HandlerException
+    {
+        String contentType = null;
+        try
+        {
+            contentType = Files.probeContentType (file.toPath ());
+        }
+        catch (IOException ignored)
+        {
+        }
+
+        final HttpResponse response = new HttpResponse ();
+        response.setContentType (contentType);
+        response.setStatusCode (200);
+        response.setCharset (StandardCharsets.UTF_8);
+        response.setHeader ("filename" , file.getName ());
+
+        try (final InputStream stream = new FileInputStream (file))
+        {
+            outputStream.write (getHeader (response , file.length ()).getBytes ());
+
+            byte[] bytes = new byte[1024 * 5];
+            for (int len = 0; len != -1; len = stream.read (bytes)) outputStream.write (bytes , 0 , len);
+
+            outputStream.flush ();
+            outputStream.close ();
+        }
+        catch (IOException ignored)
+        {
+        }
     }
 
     public static void writeText (final OutputStream outputStream , final String text , final int statusCode) throws Handler.HandlerException

@@ -4,8 +4,11 @@ import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
 import com.bardiademon.JavaServer.Server.HttpRequest.StreamReader;
 import com.bardiademon.JavaServer.bardiademon.Default;
+import com.bardiademon.JavaServer.bardiademon.Path;
+import com.bardiademon.JavaServer.bardiademon.Str;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,6 +30,8 @@ public final class Server
     private ServerSocket server;
     private OnError onError;
 
+    private OnFile onFile;
+
     private final List <Handler> routes = new ArrayList <> ();
 
     public void run (int port , final OnError onError) throws IOException
@@ -39,17 +44,22 @@ public final class Server
         this.onError = onError;
     }
 
-    public void onGet (final String route , Handler.Request request)
+    public void setOnFile (final OnFile onFile)
     {
-        on (Method.get , route , request);
+        this.onFile = onFile;
     }
 
-    public void onPost (final String route , Handler.Request request)
+    public void onGet (Handler.Request request , final String... route)
     {
-        on (Method.post , route , request);
+        on (Method.get , request , route);
     }
 
-    public void on (final Method method , final String route , Handler.Request request)
+    public void onPost (Handler.Request request , final String... route)
+    {
+        on (Method.post , request , route);
+    }
+
+    public void on (final Method method , Handler.Request request , final String... route)
     {
         routes.add (new Handler (request , route , method));
     }
@@ -107,28 +117,52 @@ public final class Server
                         {
                             request.setInputStream (inputStream);
                             request.setOutputStream (outputStream);
-                            for (final Handler route : routes)
+                            Path.setPublicPath ();
+
+                            final String favicon = favicon (request.getPath ());
+                            if (favicon != null) request.setPath (favicon);
+
+                            final String pathFile = getPathFile (request.getPath ());
+                            File file;
+
+                            if (Str.isEmpty (pathFile) || !(file = new File (Path.Get (Path.publicPath , pathFile))).exists ())
                             {
-                                final Map <String, String> pathParam = toPath (route.path , request.getPath ());
-                                if ((pathParam != null || route.path.equals (request.getPath ())) && route.method.equals (request.getMethod ()))
+                                for (final Handler route : routes)
                                 {
-                                    try
+                                    for (final String path : route.path)
                                     {
-                                        if (pathParam != null) request.setUrlPathParam (pathParam);
-                                        route.doing (request , route.request.on (request));
-                                        socket.close ();
-                                        return;
-                                    }
-                                    catch (final Handler.HandlerException e)
-                                    {
-                                        onError.onGetHandlerException (e);
+                                        final Map <String, String> pathParam = toPath (path , request.getPath ());
+                                        if ((pathParam != null || path.equals (request.getPath ())) && route.method.equals (request.getMethod ()))
+                                        {
+                                            try
+                                            {
+                                                if (pathParam != null) request.setUrlPathParam (pathParam);
+                                                route.doing (request , route.request.on (request));
+                                            }
+                                            catch (final Handler.HandlerException e)
+                                            {
+                                                HttpResponse.error (outputStream , e);
+                                                onError.onGetHandlerException (e);
+                                            }
+                                            finally
+                                            {
+                                                socket.close ();
+                                            }
+                                            return;
+                                        }
                                     }
                                 }
+
+                                HttpResponse.notFoundPage (outputStream);
+
+                                socket.close ();
+                            }
+                            else
+                            {
+                                if (onFile != null) onFile.file (request , file);
+                                else HttpResponse.writeFile (outputStream , file);
                             }
 
-                            HttpResponse.notFoundPage (outputStream);
-
-                            socket.close ();
                         }
                         else HttpResponse.bardiademon (outputStream);
                     }
@@ -234,6 +268,7 @@ public final class Server
 
         new Thread (() -> reader.read (inputStream , (line , bytes) ->
         {
+            System.out.println (line);
             if (line.equals ("|bardiademon.NULL|"))
             {
                 synchronized (httpRequest)
@@ -490,6 +525,20 @@ public final class Server
         return httpRequest;
     }
 
+    public String favicon (final String userPath)
+    {
+        return (userPath.equals ("/favicon.ico") ? String.format ("/%s/favicon.ico" , Path.publicName) : null);
+    }
+
+    // agar file bashad
+    private String getPathFile (final String userPath)
+    {
+        final String[] split = userPath.split ("/");
+        if (split.length > 2 && split[1].equals (Path.publicName))
+            return userPath.substring (String.format ("/%s" , Path.publicName).length ());
+        return null;
+    }
+
     private final static class GetInfo
     {
         private static final String K_HOST = "host", K_USER_AGENT = "user-agent", K_ACCEPT_ENCODING = "accept-encoding",
@@ -620,6 +669,11 @@ public final class Server
             }
             return null;
         }
+    }
+
+    public interface OnFile
+    {
+        void file (final HttpRequest request , final File file);
     }
 
     public interface OnError

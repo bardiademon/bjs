@@ -13,12 +13,12 @@ import java.util.List;
 public final class Handler
 {
     public final Request request;
-    public final String path;
+    public final String[] path;
     public final Method method;
     private HttpRequest httpRequest;
     private HttpResponse httpResponse;
 
-    public Handler (final Request request , final String path , final Method method)
+    public Handler (final Request request , final String[] path , final Method method)
     {
         this.request = request;
         this.path = path;
@@ -33,6 +33,7 @@ public final class Handler
         if (!Str.isEmpty (Path.staticPath))
         {
             Path.setTemplatePath ();
+
             final File staticPathFile = new File (Path.staticPath);
             if (staticPathFile.exists ())
             {
