@@ -2,6 +2,7 @@ package com.bardiademon.JavaServer.Server.HttpRequest;
 
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Time;
+import com.google.gson.Gson;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,7 +50,7 @@ public class HttpRequest
     private List <String> accepts;
     private String acceptEncoding;
     private String acceptLanguage;
-    private String raw;
+    private String rawStr;
 
     public String getHost ()
     {
@@ -222,15 +223,28 @@ public class HttpRequest
         this.acceptLanguage = acceptLanguage;
     }
 
-    public String getRaw ()
+    public String getRawStr ()
     {
-        return raw;
+        return rawStr;
     }
 
-    public void setRaw (String raw)
+    public void setRawStr (String rawStr)
     {
-        if (this.raw == null) this.raw = raw;
-        else this.raw += raw;
+        if (this.rawStr == null) this.rawStr = rawStr;
+        else this.rawStr += rawStr;
+    }
+
+    public <T> T getRaw (final Class <T> rawType)
+    {
+        try
+        {
+            return (new Gson ()).fromJson (rawStr , rawType);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace ();
+        }
+        return null;
     }
 
     public static final class FileRequest

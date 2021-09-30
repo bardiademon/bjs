@@ -117,7 +117,7 @@ public final class HttpResponse
         {
             write (stream , response , response.getText ());
         }
-        catch (Handler.HandlerException handlerException)
+        catch (Router.HandlerException handlerException)
         {
             try
             {
@@ -159,17 +159,17 @@ public final class HttpResponse
         return response;
     }
 
-    public static void notFoundPage (final OutputStream outputStream) throws Handler.HandlerException
+    public static void notFoundPage (final OutputStream outputStream) throws Router.HandlerException
     {
         writeText (outputStream , "404 Page not found" , 404);
     }
 
-    public static void bardiademon (final OutputStream outputStream) throws Handler.HandlerException
+    public static void bardiademon (final OutputStream outputStream) throws Router.HandlerException
     {
         writeText (outputStream , "bardiademon" , 200);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file) throws Handler.HandlerException
+    public static void writeFile (final OutputStream outputStream , final File file) throws Router.HandlerException
     {
         String contentType = null;
         try
@@ -201,7 +201,7 @@ public final class HttpResponse
         }
     }
 
-    public static void writeText (final OutputStream outputStream , final String text , final int statusCode) throws Handler.HandlerException
+    public static void writeText (final OutputStream outputStream , final String text , final int statusCode) throws Router.HandlerException
     {
         final HttpResponse response = new HttpResponse ();
         response.setResponseType (ResponseType.text);
@@ -314,7 +314,7 @@ public final class HttpResponse
         return responseType;
     }
 
-    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final String textHtml) throws Handler.HandlerException
+    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final String textHtml) throws Router.HandlerException
     {
         try
         {
@@ -322,11 +322,11 @@ public final class HttpResponse
         }
         catch (final Exception exception)
         {
-            throw new Handler.HandlerException (exception.getMessage ());
+            throw new Router.HandlerException (exception.getMessage ());
         }
     }
 
-    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final InputStream stream) throws Handler.HandlerException
+    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final InputStream stream) throws Router.HandlerException
     {
         try
         {
@@ -341,7 +341,7 @@ public final class HttpResponse
         }
         catch (final IOException exception)
         {
-            throw new Handler.HandlerException (exception.getMessage ());
+            throw new Router.HandlerException (exception.getMessage ());
         }
     }
 

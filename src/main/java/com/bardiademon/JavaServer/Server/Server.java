@@ -3,7 +3,6 @@ package com.bardiademon.JavaServer.Server;
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
 import com.bardiademon.JavaServer.Server.HttpRequest.StreamReader;
-import com.bardiademon.JavaServer.bardiademon.Controller;
 import com.bardiademon.JavaServer.bardiademon.Default;
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Str;
@@ -13,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -34,12 +34,27 @@ public final class Server
 
     private OnFile onFile;
 
-    private final List <Handler> routes = new ArrayList <> ();
+    private final List <Router> routes = new ArrayList <> ();
+
+    public void run (final OnError onError) throws IOException
+    {
+        final Config config = new Config ();
+        if (config.isOk ()) run (config.getPort () , config.getHost () , onError);
+        else throw new IOException ("config.bjs error");
+    }
 
     public void run (int port , final OnError onError) throws IOException
     {
+        run (port , "localhost" , onError);
+    }
+
+    public void run (int port , final String host , final OnError onError) throws IOException
+    {
         System.out.printf ("\n%s%s\n\n" , Default._V , Default.POWERED_BY);
-        server = new ServerSocket (port);
+
+        if (Str.isEmpty (host)) server = new ServerSocket (port);
+        else server = new ServerSocket (port , 0 , InetAddress.getByName (host));
+
         server.setReceiveBufferSize (Integer.MAX_VALUE);
         server.setSoTimeout (Integer.MAX_VALUE);
         System.out.println ("Server run in port " + port);
@@ -63,7 +78,7 @@ public final class Server
 
     public void on (final Method method , final Controller controller , final String... route)
     {
-        routes.add (new Handler (controller , route , method));
+        routes.add (new Router (controller , route , method));
     }
 
     public void listen ()
@@ -129,7 +144,7 @@ public final class Server
 
                             if (Str.isEmpty (pathFile) || !(file = new File (Path.Get (Path.publicPath , pathFile))).exists ())
                             {
-                                for (final Handler route : routes)
+                                for (final Router route : routes)
                                 {
                                     for (final String path : route.path)
                                     {
@@ -141,7 +156,7 @@ public final class Server
                                                 if (pathParam != null) request.setUrlPathParam (pathParam);
                                                 route.doing (request , route.controller.run (request));
                                             }
-                                            catch (final Handler.HandlerException e)
+                                            catch (final Router.HandlerException e)
                                             {
                                                 HttpResponse.error (outputStream , e);
                                                 onError.onGetHandlerException (e);
@@ -184,7 +199,7 @@ public final class Server
     private static final int PP_I_KEY = 0, PP_I_INDEX = 1;
 
     // Pathi ke az server taiin shode /PATH/{KEY}/PATH/{KEY}/...
-    private List <Object[]> pathParam (final String serverPath) throws Handler.HandlerException
+    private List <Object[]> pathParam (final String serverPath) throws Router.HandlerException
     {
         final String[] split = serverPath.split ("/");
         final List <Object[]> keyIndex = new ArrayList <> ();
@@ -194,7 +209,7 @@ public final class Server
             for (int j = i + 1; j < split.length; j++)
             {
                 if (i != j && split[i].equals (split[j]))
-                    throw new Handler.HandlerException ("duplicate Path[" + split[i] + "]");
+                    throw new Router.HandlerException ("duplicate Path[" + split[i] + "]");
             }
         }
 
@@ -208,7 +223,7 @@ public final class Server
         return keyIndex;
     }
 
-    private Map <String, String> toPath (final String serverPath , final String userPath) throws Handler.HandlerException
+    private Map <String, String> toPath (final String serverPath , final String userPath) throws Router.HandlerException
     {
         final List <Object[]> keyIndex = pathParam (serverPath);
         if (keyIndex.size () > 0)
@@ -381,7 +396,7 @@ public final class Server
                         case HttpRequest.CT_APP_JSON_OR_QL:
                         case HttpRequest.CT_TEXT_HTML:
                         {
-                            httpRequest.setRaw (new String (bytes , StandardCharsets.UTF_8));
+                            httpRequest.setRawStr (new String (bytes , StandardCharsets.UTF_8));
                             reader.setGetFullLine (true);
 
                             synchronized (httpRequest)
@@ -693,6 +708,6 @@ public final class Server
 
         void onGetOutputStreamError (final IOException exception);
 
-        void onGetHandlerException (final Handler.HandlerException exception);
+        void onGetHandlerException (final Router.HandlerException exception);
     }
 }

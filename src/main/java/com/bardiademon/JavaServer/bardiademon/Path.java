@@ -17,6 +17,9 @@ public final class Path
 
     public static final String DEFAULT_STATIC_PATH = Get (ROOT , "static");
 
+    // bjs => bardiademon Java Server
+    public static final String CONFIG_BJS = Get (ROOT , "config.bjs");
+
     public static final String TEMPLATE_NAME = "template";
     public static String publicName = "public";
     public static String publicPath;

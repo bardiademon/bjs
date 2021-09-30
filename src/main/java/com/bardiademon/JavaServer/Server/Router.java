@@ -2,7 +2,6 @@ package com.bardiademon.JavaServer.Server;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
-import com.bardiademon.JavaServer.bardiademon.Controller;
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Str;
 
@@ -11,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-public final class Handler
+public final class Router
 {
     public final String[] path;
     public final Method method;
@@ -19,12 +18,13 @@ public final class Handler
     private HttpResponse httpResponse;
     public final Controller controller;
 
-    public Handler (final Controller controller , final String[] path , final Method method)
+    public Router (final Controller controller , final String[] path , final Method method)
     {
         this.controller = controller;
         this.path = path;
         this.method = method;
     }
+
 
     public void doing (final HttpRequest request , final HttpResponse response) throws HandlerException
     {

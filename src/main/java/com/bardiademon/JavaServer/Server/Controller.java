@@ -1,7 +1,6 @@
-package com.bardiademon.JavaServer.bardiademon;
+package com.bardiademon.JavaServer.Server;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
-import com.bardiademon.JavaServer.Server.HttpResponse;
 
 public interface Controller
 {
