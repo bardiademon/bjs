@@ -154,7 +154,7 @@ public final class HttpResponse
         response.setStatusCode (200);
         response.setCharset (StandardCharsets.UTF_8);
         response.setText (text);
-        response.setContentType (HttpRequest.CT_TEXT_HTML);
+        response.setContentType (HttpRequest.CT_TEXT_PLAIN);
 
         return response;
     }

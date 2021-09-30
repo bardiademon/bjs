@@ -66,19 +66,26 @@ public final class Server
         this.onFile = onFile;
     }
 
-    public void onGet (final Controller controller , final String... route)
+    public <T> void onGet (final Class <T> controller , final String... route)
     {
         on (Method.get , controller , route);
     }
 
-    public void onPost (final Controller controller , final String... route)
+    public <T> void onPost (final Class <T> controller , final String... route)
     {
         on (Method.post , controller , route);
     }
 
-    public void on (final Method method , final Controller controller , final String... route)
+    public <T> void on (final Method method , final Class <T> controller , final String... route)
     {
-        routes.add (new Router (controller , route , method));
+        try
+        {
+            routes.add (new Router (((Controller) controller.newInstance ()) , route , method));
+        }
+        catch (final InstantiationException | IllegalAccessException e)
+        {
+            e.printStackTrace ();
+        }
     }
 
     public void listen ()

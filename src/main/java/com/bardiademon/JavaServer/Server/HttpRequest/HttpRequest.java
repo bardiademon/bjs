@@ -236,15 +236,7 @@ public class HttpRequest
 
     public <T> T getRaw (final Class <T> rawType)
     {
-        try
-        {
-            return (new Gson ()).fromJson (rawStr , rawType);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace ();
-        }
-        return null;
+        return (new Gson ()).fromJson (rawStr , rawType);
     }
 
     public static final class FileRequest
