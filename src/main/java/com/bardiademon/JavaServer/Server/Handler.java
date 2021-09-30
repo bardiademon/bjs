@@ -2,6 +2,7 @@ package com.bardiademon.JavaServer.Server;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
+import com.bardiademon.JavaServer.bardiademon.Controller;
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Str;
 
@@ -12,15 +13,15 @@ import java.util.List;
 
 public final class Handler
 {
-    public final Request request;
     public final String[] path;
     public final Method method;
     private HttpRequest httpRequest;
     private HttpResponse httpResponse;
+    public final Controller controller;
 
-    public Handler (final Request request , final String[] path , final Method method)
+    public Handler (final Controller controller , final String[] path , final Method method)
     {
-        this.request = request;
+        this.controller = controller;
         this.path = path;
         this.method = method;
     }
@@ -138,11 +139,6 @@ public final class Handler
     private void write (final String textHtml) throws HandlerException
     {
         HttpResponse.write (httpRequest.getOutputStream () , httpResponse , textHtml);
-    }
-
-    public interface Request
-    {
-        HttpResponse on (final HttpRequest request);
     }
 
     public static class HandlerException extends Exception

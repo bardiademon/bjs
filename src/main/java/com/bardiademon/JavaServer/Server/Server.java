@@ -3,6 +3,7 @@ package com.bardiademon.JavaServer.Server;
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
 import com.bardiademon.JavaServer.Server.HttpRequest.StreamReader;
+import com.bardiademon.JavaServer.bardiademon.Controller;
 import com.bardiademon.JavaServer.bardiademon.Default;
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Str;
@@ -50,19 +51,19 @@ public final class Server
         this.onFile = onFile;
     }
 
-    public void onGet (Handler.Request request , final String... route)
+    public void onGet (final Controller controller , final String... route)
     {
-        on (Method.get , request , route);
+        on (Method.get , controller , route);
     }
 
-    public void onPost (Handler.Request request , final String... route)
+    public void onPost (final Controller controller , final String... route)
     {
-        on (Method.post , request , route);
+        on (Method.post , controller , route);
     }
 
-    public void on (final Method method , Handler.Request request , final String... route)
+    public void on (final Method method , final Controller controller , final String... route)
     {
-        routes.add (new Handler (request , route , method));
+        routes.add (new Handler (controller , route , method));
     }
 
     public void listen ()
@@ -138,7 +139,7 @@ public final class Server
                                             try
                                             {
                                                 if (pathParam != null) request.setUrlPathParam (pathParam);
-                                                route.doing (request , route.request.on (request));
+                                                route.doing (request , route.controller.run (request));
                                             }
                                             catch (final Handler.HandlerException e)
                                             {
