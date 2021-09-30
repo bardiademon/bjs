@@ -133,6 +133,32 @@ public final class HttpResponse
         }
     }
 
+    public static HttpResponse loadHtml (final String htmlFile)
+    {
+        final HttpResponse response = new HttpResponse ();
+
+        response.setResponseType (HttpResponse.ResponseType.html);
+        response.setStatusCode (200);
+        response.setCharset (StandardCharsets.UTF_8);
+        response.setHtmlFile (htmlFile);
+        response.setContentType (HttpRequest.CT_TEXT_HTML);
+
+        return response;
+    }
+
+    public static HttpResponse text (final String text)
+    {
+        final HttpResponse response = new HttpResponse ();
+
+        response.setResponseType (HttpResponse.ResponseType.text);
+        response.setStatusCode (200);
+        response.setCharset (StandardCharsets.UTF_8);
+        response.setText (text);
+        response.setContentType (HttpRequest.CT_TEXT_HTML);
+
+        return response;
+    }
+
     public static void notFoundPage (final OutputStream outputStream) throws Handler.HandlerException
     {
         writeText (outputStream , "404 Page not found" , 404);

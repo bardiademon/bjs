@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -253,7 +254,7 @@ public final class Server
     {
         final HttpRequest httpRequest = new HttpRequest ();
         final GetInfo getInfo = new GetInfo ();
-        final AtomicInteger numberOfLine = new AtomicInteger ();
+        final AtomicInteger numberOfLine = new AtomicInteger (0);
         final AtomicReference <Exception> exception = new AtomicReference <> ();
         final boolean[] mainHeaderOk = { false };
         final AtomicBoolean getOneFile = new AtomicBoolean (false);
@@ -268,7 +269,6 @@ public final class Server
 
         new Thread (() -> reader.read (inputStream , (line , bytes) ->
         {
-            System.out.println (line);
             if (line.equals ("|bardiademon.NULL|"))
             {
                 synchronized (httpRequest)
@@ -290,7 +290,6 @@ public final class Server
                         final String methodStr = mtd.trim ().toLowerCase (Locale.ROOT);
                         method = Method.to (methodStr);
                         httpRequest.setMethod (method);
-
 
                         String path = mr[1].trim ();
 
@@ -380,8 +379,18 @@ public final class Server
                         case HttpRequest.CT_TEXT_PLAIN:
                         case HttpRequest.CT_APP_JSON_OR_QL:
                         case HttpRequest.CT_TEXT_HTML:
-                            httpRequest.setRaw (line);
-                            break;
+                        {
+                            httpRequest.setRaw (new String (bytes , StandardCharsets.UTF_8));
+                            reader.setGetFullLine (true);
+
+                            synchronized (httpRequest)
+                            {
+                                httpRequest.notify ();
+                                httpRequest.notifyAll ();
+                            }
+
+                            return true;
+                        }
                         case HttpRequest.CT_APP_X_WWW_FROM_URLENCODED:
                         {
                             final Map <String, String> params = new HashMap <> ();
@@ -493,26 +502,25 @@ public final class Server
                         }
                     }
                 }
-                else
+
+                line = line.toLowerCase (Locale.ROOT).trim ();
+                if (line.contains (GetInfo.K_USER_AGENT))
+                    httpRequest.setUserAgent (getInfo.getUserAgent (line));
+                else if (line.contains (GetInfo.K_ACCEPT_ENCODING))
+                    httpRequest.setAcceptEncoding (getInfo.getAcceptEncoding (line));
+                else if (line.contains (GetInfo.K_CONTENT_TYPE))
                 {
-                    line = line.toLowerCase (Locale.ROOT).trim ();
-                    if (line.contains (GetInfo.K_USER_AGENT))
-                        httpRequest.setUserAgent (getInfo.getUserAgent (line));
-                    else if (line.contains (GetInfo.K_ACCEPT_ENCODING))
-                        httpRequest.setAcceptEncoding (getInfo.getAcceptEncoding (line));
-                    else if (line.contains (GetInfo.K_CONTENT_TYPE))
-                    {
-                        final String[] contentTypeAndBoundary = getInfo.getContentTypeAndBoundary (line);
-                        httpRequest.setContentType (contentTypeAndBoundary[0]);
-                        httpRequest.setBoundary (contentTypeAndBoundary[1]);
-                    }
-                    else if (line.contains (GetInfo.K_ACCEPT_LANGUAGE))
-                        httpRequest.setAcceptLanguage (getInfo.getAcceptLanguage (line));
-                    else if (line.contains (GetInfo.K_COOKIE))
-                        httpRequest.setCookies (getInfo.getCookies (line));
-                    else if (line.contains (GetInfo.K_ACCEPT))
-                        httpRequest.setAccepts (getInfo.getAccepts (line));
+                    final String[] contentTypeAndBoundary = getInfo.getContentTypeAndBoundary (line);
+                    httpRequest.setContentType (contentTypeAndBoundary[0]);
+                    httpRequest.setBoundary (contentTypeAndBoundary[1]);
                 }
+                else if (line.contains (GetInfo.K_ACCEPT_LANGUAGE))
+                    httpRequest.setAcceptLanguage (getInfo.getAcceptLanguage (line));
+                else if (line.contains (GetInfo.K_COOKIE))
+                    httpRequest.setCookies (getInfo.getCookies (line));
+                else if (line.contains (GetInfo.K_ACCEPT))
+                    httpRequest.setAccepts (getInfo.getAccepts (line));
+
             }
             return true;
         })).start ();
