@@ -25,7 +25,6 @@ public final class Router
         this.method = method;
     }
 
-
     public void doing (final HttpRequest request , final HttpResponse response) throws HandlerException
     {
         this.httpRequest = request;
@@ -60,7 +59,6 @@ public final class Router
             else throw new HandlerException (HandlerException.Message.static_path_is_not_exists);
         }
         else throw new HandlerException (HandlerException.Message.static_path_is_empty);
-
 
         request.clear ();
     }

@@ -1,6 +1,7 @@
 package com.bardiademon.JavaServer.Server;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
+import com.bardiademon.JavaServer.bardiademon.Default;
 import com.bardiademon.JavaServer.bardiademon.Time;
 
 import java.io.ByteArrayOutputStream;
@@ -133,12 +134,17 @@ public final class HttpResponse
         }
     }
 
-    public static HttpResponse loadHtml (final String htmlFile)
+    public static HttpResponse createHtmlResponse (final String htmlFile)
+    {
+        return createHtmlResponse (htmlFile , SC_OK);
+    }
+
+    public static HttpResponse createHtmlResponse (final String htmlFile , final int statusCode)
     {
         final HttpResponse response = new HttpResponse ();
 
         response.setResponseType (HttpResponse.ResponseType.html);
-        response.setStatusCode (200);
+        response.setStatusCode (statusCode);
         response.setCharset (StandardCharsets.UTF_8);
         response.setHtmlFile (htmlFile);
         response.setContentType (HttpRequest.CT_TEXT_HTML);
@@ -146,12 +152,17 @@ public final class HttpResponse
         return response;
     }
 
-    public static HttpResponse text (final String text)
+    public static HttpResponse createTextResponse (final String text)
+    {
+        return createTextResponse (text , SC_OK);
+    }
+
+    public static HttpResponse createTextResponse (final String text , final int statusCode)
     {
         final HttpResponse response = new HttpResponse ();
 
         response.setResponseType (HttpResponse.ResponseType.text);
-        response.setStatusCode (200);
+        response.setStatusCode (statusCode);
         response.setCharset (StandardCharsets.UTF_8);
         response.setText (text);
         response.setContentType (HttpRequest.CT_TEXT_PLAIN);
@@ -161,15 +172,15 @@ public final class HttpResponse
 
     public static void notFoundPage (final OutputStream outputStream) throws Router.HandlerException
     {
-        writeText (outputStream , "404 Page not found" , 404);
+        writeText (outputStream , "404 Page not found" , SC_NOT_FOUND);
     }
 
     public static void bardiademon (final OutputStream outputStream) throws Router.HandlerException
     {
-        writeText (outputStream , "bardiademon" , 200);
+        writeText (outputStream , "bardiademon" , SC_OK);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file) throws Router.HandlerException
+    public static void writeFile (final OutputStream outputStream , final File file)
     {
         String contentType = null;
         try
@@ -203,14 +214,88 @@ public final class HttpResponse
 
     public static void writeText (final OutputStream outputStream , final String text , final int statusCode) throws Router.HandlerException
     {
-        final HttpResponse response = new HttpResponse ();
-        response.setResponseType (ResponseType.text);
-        response.setStatusCode (statusCode);
-        response.setCharset (StandardCharsets.UTF_8);
-        response.setText (text);
-        response.setContentType (HttpRequest.CT_TEXT_PLAIN);
-
+        final HttpResponse response = createTextResponse (text , statusCode);
         write (outputStream , response , response.getText ());
+    }
+
+    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final String textHtml) throws Router.HandlerException
+    {
+        try
+        {
+            write (outputStream , (getHeader (httpResponse , textHtml.length ()) + new String (textHtml.getBytes (httpResponse.getCharset ()))).getBytes ());
+        }
+        catch (final Exception exception)
+        {
+            throw new Router.HandlerException (exception.getMessage ());
+        }
+    }
+
+    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final InputStream stream) throws Router.HandlerException
+    {
+        try
+        {
+            final ByteArrayOutputStream out = new ByteArrayOutputStream (stream.available ());
+            final byte[] buffer = new byte[1027 * 5];
+            for (int len = 0; len != -1; len = stream.read (buffer)) out.write (buffer , 0 , len);
+
+            outputStream.write (getHeader (httpResponse , out.size ()).getBytes (StandardCharsets.UTF_8));
+            outputStream.write (out.toByteArray ());
+            outputStream.flush ();
+            outputStream.close ();
+        }
+        catch (final IOException exception)
+        {
+            throw new Router.HandlerException (exception.getMessage ());
+        }
+    }
+
+    private static String getHeader (final HttpResponse httpResponse , final long len)
+    {
+        final StringBuilder response = new StringBuilder (String.format (
+                "HTTP/1.1 %d\r\ndate:%s\r\nX-Powered-By:%s\r\nConnection:Upgrade\r\nUpgrade: websocket\r\nContent-Type:%s; charset:%s\r\nContent-Length:%d" ,
+                httpResponse.getStatusCode () ,
+                LocalDateTime.now ().format (Time.getHeaderDateFormat ()) ,
+                Default.X_POWERED_BY ,
+                httpResponse.getContentType () ,
+                httpResponse.getCharset ().toString ().toLowerCase (Locale.ROOT) , len));
+
+        if (httpResponse.getHeaders ().size () > 0)
+        {
+            final Set <Map.Entry <String, String>> headers = httpResponse.getHeaders ().entrySet ();
+            for (final Map.Entry <String, String> entries : headers)
+                response.append (String.format ("\r\n%s:%s" , entries.getKey () , entries.getValue ()));
+        }
+
+        if (httpResponse.getCookies ().size () > 0)
+        {
+            final List <HttpRequest.Cookie> cookies = httpResponse.getCookies ();
+            for (final HttpRequest.Cookie cookie : cookies)
+            {
+                response.append (String.format ("\r\nSet-Cookie:%s=%s; expires=%s; path=%s; domain=%s;" ,
+                        cookie.key , cookie.value , cookie.expires , cookie.path , cookie.domain));
+            }
+        }
+
+        if (httpResponse.getRemoveCookies ().size () > 0)
+        {
+            final List <String> cookies = httpResponse.getRemoveCookies ();
+            for (final String cookieKey : cookies)
+            {
+                response.append (String.format ("\r\nSet-Cookie:%s=deleted; expires=%s; path=/ ;" ,
+                        cookieKey , LocalDateTime.now ().minusYears (100).format (Time.getHeaderDateFormat ())));
+            }
+        }
+
+        response.append ("\r\n\r\n");
+
+        return response.toString ();
+    }
+
+    private static void write (final OutputStream outputStream , byte[] bytes) throws IOException
+    {
+        outputStream.write (bytes);
+        outputStream.flush ();
+        outputStream.close ();
     }
 
     public void setCookies (HttpRequest.Cookie cookie)
@@ -308,87 +393,9 @@ public final class HttpResponse
         this.stream = stream;
     }
 
-
     public ResponseType getResponseType ()
     {
         return responseType;
-    }
-
-    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final String textHtml) throws Router.HandlerException
-    {
-        try
-        {
-            write (outputStream , (getHeader (httpResponse , textHtml.length ()) + new String (textHtml.getBytes (httpResponse.getCharset ()))).getBytes ());
-        }
-        catch (final Exception exception)
-        {
-            throw new Router.HandlerException (exception.getMessage ());
-        }
-    }
-
-    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final InputStream stream) throws Router.HandlerException
-    {
-        try
-        {
-            final ByteArrayOutputStream out = new ByteArrayOutputStream (stream.available ());
-            final byte[] buffer = new byte[1027 * 5];
-            for (int len = 0; len != -1; len = stream.read (buffer)) out.write (buffer , 0 , len);
-
-            outputStream.write (getHeader (httpResponse , out.size ()).getBytes (StandardCharsets.UTF_8));
-            outputStream.write (out.toByteArray ());
-            outputStream.flush ();
-            outputStream.close ();
-        }
-        catch (final IOException exception)
-        {
-            throw new Router.HandlerException (exception.getMessage ());
-        }
-    }
-
-    private static String getHeader (final HttpResponse httpResponse , final long len)
-    {
-        final StringBuilder response = new StringBuilder (String.format (
-                "HTTP/1.1 %d\r\ndate:%s\r\nX-Powered-By:bardiademon\r\nConnection:Upgrade\r\nUpgrade: websocket\r\nContent-Type:%s; charset:%s\r\nContent-Length:%d" ,
-                httpResponse.getStatusCode () , LocalDateTime.now ().format (Time.getHeaderDateFormat ()) , httpResponse.getContentType () , httpResponse.getCharset ().toString ().toLowerCase (Locale.ROOT)
-                , len));
-
-        if (httpResponse.getHeaders ().size () > 0)
-        {
-            final Set <Map.Entry <String, String>> headers = httpResponse.getHeaders ().entrySet ();
-            for (final Map.Entry <String, String> entries : headers)
-                response.append (String.format ("\r\n%s:%s" , entries.getKey () , entries.getValue ()));
-        }
-
-        if (httpResponse.getCookies ().size () > 0)
-        {
-            final List <HttpRequest.Cookie> cookies = httpResponse.getCookies ();
-            for (final HttpRequest.Cookie cookie : cookies)
-            {
-                response.append (String.format ("\r\nSet-Cookie:%s=%s; expires=%s; path=%s; domain=%s;" ,
-                        cookie.key , cookie.value , cookie.expires , cookie.path , cookie.domain));
-            }
-        }
-
-        if (httpResponse.getRemoveCookies ().size () > 0)
-        {
-            final List <String> cookies = httpResponse.getRemoveCookies ();
-            for (final String cookieKey : cookies)
-            {
-                response.append (String.format ("\r\nSet-Cookie:%s=deleted; expires=%s; path=/ ;" ,
-                        cookieKey , LocalDateTime.now ().minusYears (100).format (Time.getHeaderDateFormat ())));
-            }
-        }
-
-        response.append ("\r\n\r\n");
-
-        return response.toString ();
-    }
-
-    private static void write (final OutputStream outputStream , byte[] bytes) throws IOException
-    {
-        outputStream.write (bytes);
-        outputStream.flush ();
-        outputStream.close ();
     }
 
     public enum ResponseType
