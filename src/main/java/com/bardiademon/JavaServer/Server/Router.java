@@ -25,6 +25,11 @@ public final class Router
         this.method = method;
     }
 
+    public static Router setController (final Controller controller)
+    {
+        return new Router (controller , null , null);
+    }
+
     public void doing (final HttpRequest request , final HttpResponse response) throws HandlerException
     {
         this.httpRequest = request;

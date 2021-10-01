@@ -37,6 +37,8 @@ public final class Server
 
     private final List <Router> routes = new ArrayList <> ();
 
+    private Router pageNotFound;
+
     public void run (final OnError onError) throws IOException
     {
         final Config config = new Config ();
@@ -67,7 +69,13 @@ public final class Server
         this.onFile = onFile;
     }
 
+    // Start add router
     public <T> void onGet (final Class <T> controller , final String... route)
+    {
+        on (Method.get , controller , route);
+    }
+
+    public void onGet (final Controller controller , final String... route)
     {
         on (Method.get , controller , route);
     }
@@ -75,6 +83,16 @@ public final class Server
     public <T> void onPost (final Class <T> controller , final String... route)
     {
         on (Method.post , controller , route);
+    }
+
+    public void onPost (final Controller controller , final String... route)
+    {
+        on (Method.post , controller , route);
+    }
+
+    public void on (final Method method , final Controller controller , final String... route)
+    {
+        routes.add (new Router (controller , route , method));
     }
 
     public <T> void on (final Method method , final Class <T> controller , final String... route)
@@ -88,6 +106,7 @@ public final class Server
             e.printStackTrace ();
         }
     }
+    // End add router
 
     public void listen ()
     {
@@ -166,7 +185,6 @@ public final class Server
                                             }
                                             catch (final Router.HandlerException e)
                                             {
-                                                HttpResponse.error (outputStream , e);
                                                 onError.onGetHandlerException (e);
                                             }
                                             finally
@@ -178,7 +196,12 @@ public final class Server
                                     }
                                 }
 
-                                HttpResponse.notFoundPage (outputStream);
+                                if (pageNotFound == null) HttpResponse.notFoundPage (outputStream);
+                                else
+                                {
+                                    pageNotFound.doing (request , pageNotFound.controller.run (request));
+                                    return;
+                                }
 
                                 socket.close ();
                             }
@@ -187,7 +210,6 @@ public final class Server
                                 if (onFile != null) onFile.file (request , file);
                                 else HttpResponse.writeFile (outputStream , file);
                             }
-
                         }
                         else HttpResponse.bardiademon (outputStream);
                     }
@@ -274,7 +296,7 @@ public final class Server
         return null;
     }
 
-    public HttpRequest getHttpRequest (final InputStream inputStream) throws Exception
+    private HttpRequest getHttpRequest (final InputStream inputStream) throws Exception
     {
         final HttpRequest httpRequest = new HttpRequest ();
         final GetInfo getInfo = new GetInfo ();
@@ -562,6 +584,11 @@ public final class Server
         return (userPath.equals ("/favicon.ico") ? String.format ("/%s/favicon.ico" , Path.publicName) : null);
     }
 
+    public void setPageNotFound (final Router pageNotFound)
+    {
+        this.pageNotFound = pageNotFound;
+    }
+
     // agar file bashad
     private String getPathFile (final String userPath)
     {
@@ -595,10 +622,7 @@ public final class Server
         {
             if (host != null && !host.isEmpty ())
             {
-                if (host.contains (":"))
-                {
-                    return host.split (":");
-                }
+                if (host.contains (":")) return host.split (":");
                 else return new String[] { host , "80" };
             }
             else return new String[] { };
@@ -610,17 +634,7 @@ public final class Server
             {
                 final String[] split = line.split (":");
                 if (split.length == 2) return split[1].trim ();
-
-//                final StringBuilder value = new StringBuilder ();
-//                final char[] chars = input.toCharArray ();
-//                for (int i = (input.indexOf (key) + key.length ()); i < input.length (); i++)
-//                {
-//                    if (chars[i] == '\n') break;
-//                    value.append (chars[i]);
-//                }
-//                return value.toString ().trim ();
             }
-
             return null;
         }
 
