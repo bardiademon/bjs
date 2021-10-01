@@ -30,12 +30,12 @@ public final class Maps
         return maps;
     }
 
-    public static String getJsonString (final Object... keyValues) throws Exception
+    public static String getJsonString (final Object... keyValues)
     {
         return getMaps (keyValues).toString ();
     }
 
-    public static Map <String, Object> getMap (final Object... keyValues) throws Exception
+    public static Map <String, Object> getMap (final Object... keyValues)
     {
         return getMaps (keyValues).map;
     }
