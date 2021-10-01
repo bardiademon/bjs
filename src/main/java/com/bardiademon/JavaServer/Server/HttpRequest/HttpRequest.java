@@ -1,8 +1,10 @@
 package com.bardiademon.JavaServer.Server.HttpRequest;
 
 import com.bardiademon.JavaServer.bardiademon.Path;
+import com.bardiademon.JavaServer.bardiademon.Str;
 import com.bardiademon.JavaServer.bardiademon.Time;
 import com.google.gson.Gson;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -282,16 +284,24 @@ public class HttpRequest
 
         public boolean copy (final String to) throws IOException
         {
-            File toFile = new File (to);
-            if (toFile.exists ())
-            {
-                toFile = new File (Path.Get (toFile.getAbsolutePath () , filename));
-                if (!toFile.exists ()) return (Files.copy (getFile () , toFile.toPath ()) >= len);
-            }
-            return false;
+            return copy (to , false);
         }
 
-        public static FileRequest getInstance (byte[] bytes , final String info) throws Exception
+        public boolean copy (final String to , final boolean createDir) throws IOException
+        {
+            File toFile = new File (to);
+            if (toFile.exists () || (createDir && toFile.mkdirs ()))
+            {
+                final String name = FilenameUtils.getName (to);
+                if (Str.isEmpty (name)) toFile = new File (Path.Get (toFile.getAbsolutePath () , filename));
+
+                if (!toFile.exists ()) return (Files.copy (getFile () , toFile.toPath ()) >= len);
+                else throw new IOException ("Filename is exists in path");
+            }
+            else throw new IOException ("Path is not exists");
+        }
+
+        public static FileRequest getInstance (final byte[] bytes , final String info) throws Exception
         {
             if (info != null && !info.isEmpty ())
             {
@@ -326,7 +336,6 @@ public class HttpRequest
                     else throw new IOException ("Directory tmp not exists!");
                 }
             }
-
             return null;
         }
     }
