@@ -106,6 +106,16 @@ public final class HttpResponse extends StatusCode
         return createHtmlResponse (htmlFile , SC_OK);
     }
 
+    public static HttpResponse createJsonResponse (final Maps maps)
+    {
+        return createJsonResponse (maps , SC_OK);
+    }
+
+    public static HttpResponse createJsonResponse (final Maps maps , final int statusCode)
+    {
+        return createTextResponse (maps.toString () , statusCode , HttpRequest.CT_APP_JSON_OR_QL);
+    }
+
     public static HttpResponse createHtmlResponse (final String htmlFile , final int statusCode)
     {
         final HttpResponse response = new HttpResponse ();
