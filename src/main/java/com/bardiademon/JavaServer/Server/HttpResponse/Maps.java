@@ -15,7 +15,7 @@ public final class Maps
 
     // KeyValues > index * 2 , key , value
     // index 1 key va index 2 value , index 3 key index 4 value ,...
-    public static Maps getMaps (final Object... keyValues) throws Exception
+    public static Maps getMaps (final Object... keyValues)
     {
         final Maps maps = new Maps ();
         if (keyValues.length % 2 == 0)
@@ -26,7 +26,6 @@ public final class Maps
                     maps.map.put (keyValues[i].toString () , keyValues[++i]);
             }
         }
-        else throw new Exception ("len % 2 == 0");
 
         return maps;
     }
