@@ -2,6 +2,8 @@ package com.bardiademon.JavaServer.Server;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
+import com.bardiademon.JavaServer.Server.HttpResponse.HttpResponse;
+import com.bardiademon.JavaServer.Server.HttpResponse.ResponseFile;
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Str;
 
@@ -55,6 +57,9 @@ public final class Router
                         case stream:
                             resStream ();
                             break;
+                        case file:
+                            resFile ();
+                            break;
                         default:
                             throw new HandlerException (HandlerException.Message.invalid_response_type);
                     }
@@ -66,6 +71,12 @@ public final class Router
         else throw new HandlerException (HandlerException.Message.static_path_is_empty);
 
         request.clear ();
+    }
+
+    private void resFile ()
+    {
+        final ResponseFile responseFile = httpResponse.getResponseFile ();
+        HttpResponse.writeFile (httpRequest.getOutputStream () , responseFile.file , responseFile.filename , httpResponse.getStatusCode () , httpResponse.getContentType ());
     }
 
     private void resHtml () throws HandlerException
@@ -131,6 +142,13 @@ public final class Router
                     }
                     break;
                 }
+                case file:
+                {
+                    if (httpResponse.getResponseFile () == null || !httpResponse.getResponseFile ().file.exists ())
+                        throw new HandlerException (HandlerException.Message.file_not_exists);
+
+                    break;
+                }
             }
         }
         else throw new HandlerException (HandlerException.Message.response_type_is_null);
@@ -151,7 +169,7 @@ public final class Router
             super (message.name ());
         }
 
-        HandlerException (final String message)
+        public HandlerException (final String message)
         {
             super (message);
         }
@@ -160,7 +178,7 @@ public final class Router
         {
             static_path_is_not_exists, static_path_is_empty, invalid_response_type,
             html_file_is_null, text_is_null, stream_is_null, response_type_is_null,
-            html_file_not_exists
+            html_file_not_exists, file_not_exists
         }
     }
 }

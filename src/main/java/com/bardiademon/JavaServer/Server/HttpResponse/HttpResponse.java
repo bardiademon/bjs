@@ -1,10 +1,11 @@
-package com.bardiademon.JavaServer.Server;
+package com.bardiademon.JavaServer.Server.HttpResponse;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
+import com.bardiademon.JavaServer.Server.Router;
 import com.bardiademon.JavaServer.bardiademon.Default;
+import com.bardiademon.JavaServer.bardiademon.Str;
 import com.bardiademon.JavaServer.bardiademon.Time;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -72,6 +73,7 @@ public final class HttpResponse
     private Charset charset = StandardCharsets.UTF_8;
 
     private InputStream stream;
+    private ResponseFile responseFile;
 
     private final List <HttpRequest.Cookie> cookies;
 
@@ -87,6 +89,12 @@ public final class HttpResponse
         headers = new HashMap <> ();
         cookies = new ArrayList <> ();
         removeCookies = new ArrayList <> ();
+    }
+
+    public HttpResponse (final int statusCode)
+    {
+        this ();
+        this.statusCode = statusCode;
     }
 
     public static void error (final OutputStream stream , final Exception exception)
@@ -170,6 +178,57 @@ public final class HttpResponse
         return response;
     }
 
+    public static HttpResponse createStreamResponse (final ResponseFile responseFile) throws IOException
+    {
+        return createStreamResponse (responseFile , SC_OK);
+    }
+
+    public static HttpResponse createStreamResponse (final ResponseFile responseFile , final int statusCode) throws IOException
+    {
+        return createStreamResponse (responseFile , statusCode , null);
+    }
+
+    public static HttpResponse createStreamResponse (final ResponseFile responseFile , final String contentType) throws IOException
+    {
+        return createStreamResponse (responseFile , SC_OK , contentType);
+    }
+
+    public static HttpResponse createStreamResponse (final ResponseFile responseFile , final int statusCode , final String contentType) throws IOException
+    {
+        if (responseFile.file.exists ())
+        {
+            final HttpResponse response = new HttpResponse (statusCode);
+            response.setCharset (StandardCharsets.UTF_8);
+            response.setResponseFile (responseFile);
+            response.setContentType (contentType);
+            response.setResponseType (ResponseType.file);
+            return response;
+        }
+
+        throw new IOException ("File not exists!");
+    }
+
+    public static HttpResponse createStreamResponse (final InputStream stream , final String contentType)
+    {
+        return createStreamResponse (stream , SC_OK , contentType);
+    }
+
+    public static HttpResponse createStreamResponse (final InputStream stream , final int statusCode)
+    {
+        return createStreamResponse (stream , statusCode , null);
+
+    }
+
+    public static HttpResponse createStreamResponse (final InputStream stream , final int statusCode , final String contentType)
+    {
+        final HttpResponse response = new HttpResponse (statusCode);
+        response.setCharset (StandardCharsets.UTF_8);
+        response.setStream (stream);
+        response.setContentType (contentType);
+        response.setResponseType (ResponseType.stream);
+        return response;
+    }
+
     public static void notFoundPage (final OutputStream outputStream) throws Router.HandlerException
     {
         writeText (outputStream , "404 Page not found" , SC_NOT_FOUND);
@@ -182,20 +241,54 @@ public final class HttpResponse
 
     public static void writeFile (final OutputStream outputStream , final File file)
     {
-        String contentType = null;
-        try
+        writeFile (outputStream , file , file.getName () , SC_OK , null);
+    }
+
+    public static void writeFile (final OutputStream outputStream , final File file , final String filename)
+    {
+        writeFile (outputStream , file , SC_OK);
+    }
+
+    public static void writeFile (final OutputStream outputStream , final File file , final int statusCode)
+    {
+        writeFile (outputStream , file , file.getName () , statusCode);
+    }
+
+    public static void writeFile (final OutputStream outputStream , final File file , final String filename , final int statusCode)
+    {
+        writeFile (outputStream , file , filename , statusCode , null);
+    }
+
+    public static void writeFile (final OutputStream outputStream , final File file , final int statusCode , final String contentType)
+    {
+        writeFile (outputStream , file , file.getName () , statusCode , contentType);
+    }
+
+    public static void writeFile (final OutputStream outputStream , final File file , final String filename , final String contentType)
+    {
+        writeFile (outputStream , file , filename , SC_OK , contentType);
+    }
+
+    public static void writeFile (final OutputStream outputStream , final File file , String filename , final int statusCode , String contentType)
+    {
+        if (Str.isEmpty (contentType))
         {
-            contentType = Files.probeContentType (file.toPath ());
+            try
+            {
+                contentType = Files.probeContentType (file.toPath ());
+            }
+            catch (IOException ignored)
+            {
+            }
         }
-        catch (IOException ignored)
-        {
-        }
+
+        if (Str.isEmpty (filename)) filename = file.getName ();
 
         final HttpResponse response = new HttpResponse ();
         response.setContentType (contentType);
-        response.setStatusCode (200);
+        response.setStatusCode (statusCode);
         response.setCharset (StandardCharsets.UTF_8);
-        response.setHeader ("filename" , file.getName ());
+        response.setHeader ("filename" , filename);
 
         try (final InputStream stream = new FileInputStream (file))
         {
@@ -234,12 +327,11 @@ public final class HttpResponse
     {
         try
         {
-            final ByteArrayOutputStream out = new ByteArrayOutputStream (stream.available ());
-            final byte[] buffer = new byte[1027 * 5];
-            for (int len = 0; len != -1; len = stream.read (buffer)) out.write (buffer , 0 , len);
+            outputStream.write (getHeader (httpResponse , stream.available ()).getBytes ());
 
-            outputStream.write (getHeader (httpResponse , out.size ()).getBytes (StandardCharsets.UTF_8));
-            outputStream.write (out.toByteArray ());
+            final byte[] buffer = new byte[1027 * 5];
+            for (int len = 0; len != -1; len = stream.read (buffer)) outputStream.write (buffer , 0 , len);
+
             outputStream.flush ();
             outputStream.close ();
         }
@@ -393,6 +485,16 @@ public final class HttpResponse
         this.stream = stream;
     }
 
+    public void setResponseFile (final ResponseFile responseFile)
+    {
+        this.responseFile = responseFile;
+    }
+
+    public ResponseFile getResponseFile ()
+    {
+        return responseFile;
+    }
+
     public ResponseType getResponseType ()
     {
         return responseType;
@@ -400,6 +502,6 @@ public final class HttpResponse
 
     public enum ResponseType
     {
-        html, text, stream
+        html, text, stream, file
     }
 }

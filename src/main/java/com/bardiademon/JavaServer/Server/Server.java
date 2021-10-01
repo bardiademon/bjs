@@ -4,6 +4,7 @@ import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.IncomingFiles;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
 import com.bardiademon.JavaServer.Server.HttpRequest.StreamReader;
+import com.bardiademon.JavaServer.Server.HttpResponse.HttpResponse;
 import com.bardiademon.JavaServer.bardiademon.Default;
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Str;
