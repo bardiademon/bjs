@@ -1,25 +1,16 @@
 package com.bardiademon.JavaServer.Server.HttpRequest;
 
 import com.bardiademon.JavaServer.bardiademon.Path;
-import com.bardiademon.JavaServer.bardiademon.Str;
 import com.bardiademon.JavaServer.bardiademon.Time;
 import com.google.gson.Gson;
-import org.apache.commons.io.FilenameUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class HttpRequest
 {
@@ -41,7 +32,7 @@ public class HttpRequest
     private String path;
     private String userAgent;
     private Map <String, String> headers;
-    private Map <String, FileRequest> fileRequests;
+    private Map <String, IncomingFiles> incomingFiles;
     private Map <String, String> parameters;
     private Map <String, String> pathParameters;
     private Map <String, String> urlPathParam;
@@ -124,15 +115,15 @@ public class HttpRequest
         this.headers = headers;
     }
 
-    public Map <String, FileRequest> getFileRequests ()
+    public Map <String, IncomingFiles> getIncomingFiles ()
     {
-        return fileRequests;
+        return incomingFiles;
     }
 
-    public void setFileRequests (final FileRequest fileRequest)
+    public void setIncomingFiles (final IncomingFiles incomingFiles)
     {
-        if (this.fileRequests == null) this.fileRequests = new HashMap <> ();
-        this.fileRequests.put (fileRequest.name , fileRequest);
+        if (this.incomingFiles == null) this.incomingFiles = new HashMap <> ();
+        this.incomingFiles.put (incomingFiles.name , incomingFiles);
     }
 
     public Map <String, String> getParameters ()
@@ -241,118 +232,25 @@ public class HttpRequest
         return (new Gson ()).fromJson (rawStr , rawType);
     }
 
-    public static final class FileRequest
-    {
-        public final String filename;
-        public final String contentType;
-        private final String tmpFilename;
-        public final String name;
-        public final long len;
-
-        private FileRequest (final String name , final String contentType , final String filename , final String tmpFilename , final long len)
-        {
-            this.name = name;
-            this.contentType = contentType;
-            this.tmpFilename = tmpFilename;
-            this.filename = filename;
-            this.len = len;
-        }
-
-        public InputStream getFile () throws IOException
-        {
-            final File file = new File (Path.Get (Path.TMP , tmpFilename));
-            if (file.exists ())
-            {
-                final FileInputStream inputStream = new FileInputStream (file);
-                final ByteArrayOutputStream outputStream = new ByteArrayOutputStream ();
-
-                final byte[] buffer = new byte[1024 * 8];
-
-                for (int len = 0; len != -1; len = inputStream.read (buffer)) outputStream.write (buffer , 0 , len);
-
-                inputStream.close ();
-                outputStream.flush ();
-                outputStream.close ();
-
-                System.gc ();
-
-                return new ByteArrayInputStream (outputStream.toByteArray ());
-            }
-            else throw new IOException ("File not exists!");
-
-        }
-
-        public boolean copy (final String to) throws IOException
-        {
-            return copy (to , false);
-        }
-
-        public boolean copy (final String to , final boolean createDir) throws IOException
-        {
-            File toFile = new File (to);
-            if (toFile.exists () || (createDir && toFile.mkdirs ()))
-            {
-                final String name = FilenameUtils.getName (to);
-                if (Str.isEmpty (name)) toFile = new File (Path.Get (toFile.getAbsolutePath () , filename));
-
-                if (!toFile.exists ()) return (Files.copy (getFile () , toFile.toPath ()) >= len);
-                else throw new IOException ("Filename is exists in path");
-            }
-            else throw new IOException ("Path is not exists");
-        }
-
-        public static FileRequest getInstance (final byte[] bytes , final String info) throws Exception
-        {
-            if (info != null && !info.isEmpty ())
-            {
-                final String[] splitInfo = info.split ("\n");
-
-                if (splitInfo.length == 2)
-                {
-                    final String[] filenameAndName = splitInfo[0].split (";");
-
-                    // KN => Key Name
-                    final String contentTypeKN = splitInfo[1];
-
-                    final String name = filenameAndName[1].trim ().split ("=")[1].trim ().replace ("\"" , "");
-                    final String filename = filenameAndName[2].trim ().split ("=")[1].trim ().replace ("\"" , "");
-
-                    final String contentType = contentTypeKN.trim ().split (":")[1].trim ();
-
-                    final String tmpFilename = UUID.randomUUID ().toString ().replace ("-" , "");
-
-                    final File tmpFile = new File (Path.Get (Path.TMP , tmpFilename));
-
-                    if (tmpFile.getParentFile ().exists () || tmpFile.getParentFile ().mkdirs ())
-                    {
-                        final FileOutputStream stream = new FileOutputStream (tmpFile);
-
-                        stream.write (bytes , 0 , bytes.length);
-                        stream.flush ();
-                        stream.close ();
-
-                        return new FileRequest (name , contentType , filename , tmpFilename , bytes.length);
-                    }
-                    else throw new IOException ("Directory tmp not exists!");
-                }
-            }
-            return null;
-        }
-    }
-
     public void clear ()
     {
         new Thread (() ->
         {
             try
             {
-                final Map <String, FileRequest> fileRequests = getFileRequests ();
+                final Map <String, IncomingFiles> fileRequests = getIncomingFiles ();
                 if (fileRequests != null)
                 {
                     fileRequests.forEach ((key , value) ->
                     {
-                        final File file = new File (Path.Get (Path.TMP , value.tmpFilename));
-                        if (file.exists ()) file.delete ();
+                        try
+                        {
+                            final File file = new File (Path.Get (Path.TMP , value.tmpFilename));
+                            if (file.exists ()) file.delete ();
+                        }
+                        catch (Exception ignored)
+                        {
+                        }
                     });
                     fileRequests.clear ();
                 }

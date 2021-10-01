@@ -1,6 +1,7 @@
 package com.bardiademon.JavaServer.Server;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
+import com.bardiademon.JavaServer.Server.HttpRequest.IncomingFiles;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
 import com.bardiademon.JavaServer.Server.HttpRequest.StreamReader;
 import com.bardiademon.JavaServer.bardiademon.Default;
@@ -453,7 +454,7 @@ public final class Server
 
                                         try
                                         {
-                                            httpRequest.setFileRequests (HttpRequest.FileRequest.getInstance (outputStream.get ().toByteArray () , infoOneFile.toString ()));
+                                            httpRequest.setIncomingFiles (IncomingFiles.getIncomingFile (outputStream.get ().toByteArray () , infoOneFile.toString ()));
                                         }
                                         catch (Exception e)
                                         {
