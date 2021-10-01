@@ -26,7 +26,7 @@ import java.util.Set;
 public final class HttpResponse extends StatusCode
 {
     private String text;
-    private int statusCode = 200;
+    private int statusCode = SC_OK;
     private String contentType = HttpRequest.CT_TEXT_PLAIN;
     private final Map <String, String> headers;
     private Charset charset = StandardCharsets.UTF_8;
