@@ -160,6 +160,16 @@ public final class HttpResponse
         return response;
     }
 
+    public static HttpResponse createTextResponse (final Object text)
+    {
+        return createTextResponse (text , SC_OK);
+    }
+
+    public static HttpResponse createTextResponse (final Object text , final int statusCode)
+    {
+        return createTextResponse (((text == null) ? "null" : text.toString ()) , statusCode);
+    }
+
     public static HttpResponse createTextResponse (final String text)
     {
         return createTextResponse (text , SC_OK);
