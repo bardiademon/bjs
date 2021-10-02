@@ -631,7 +631,7 @@ public final class Server
 
         private String getValue (final String line , final String key)
         {
-            if (line.contains (key))
+            if (line.toLowerCase (Locale.ROOT).contains (key))
             {
                 final String[] split = line.split (":");
                 if (split.length == 2) return split[1].trim ();
