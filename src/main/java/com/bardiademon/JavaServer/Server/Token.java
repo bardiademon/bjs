@@ -86,6 +86,13 @@ public final class Token
 
     public JWT getValue (final String secret , final String jwtCode)
     {
-        return JWT.getDecoder ().decode (jwtCode , HMACVerifier.newVerifier (secret));
+        try
+        {
+            return JWT.getDecoder ().decode (jwtCode , HMACVerifier.newVerifier (secret));
+        }
+        catch (Exception ignored)
+        {
+        }
+        return null;
     }
 }
