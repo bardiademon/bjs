@@ -27,6 +27,8 @@ public final class Path
     public static String TEMPLATE;
     public static String PUBLIC;
 
+    public static final String JWT_SECRET = Get (ROOT , "jwt-secret.bjs");
+
     public static String favicon;
 
     public static void setDefaultStaticPath ()
