@@ -550,22 +550,22 @@ public final class Server
                     }
                 }
 
-                line = line.toLowerCase (Locale.ROOT).trim ();
-                if (line.contains (GetInfo.K_USER_AGENT))
+                final String lineTrim = line.toLowerCase (Locale.ROOT).trim ();
+                if (lineTrim.contains (GetInfo.K_USER_AGENT))
                     httpRequest.setUserAgent (getInfo.getUserAgent (line));
-                else if (line.contains (GetInfo.K_ACCEPT_ENCODING))
+                else if (lineTrim.contains (GetInfo.K_ACCEPT_ENCODING))
                     httpRequest.setAcceptEncoding (getInfo.getAcceptEncoding (line));
-                else if (line.contains (GetInfo.K_CONTENT_TYPE))
+                else if (lineTrim.contains (GetInfo.K_CONTENT_TYPE))
                 {
                     final String[] contentTypeAndBoundary = getInfo.getContentTypeAndBoundary (line);
                     httpRequest.setContentType (contentTypeAndBoundary[0]);
                     httpRequest.setBoundary (contentTypeAndBoundary[1]);
                 }
-                else if (line.contains (GetInfo.K_ACCEPT_LANGUAGE))
+                else if (lineTrim.contains (GetInfo.K_ACCEPT_LANGUAGE))
                     httpRequest.setAcceptLanguage (getInfo.getAcceptLanguage (line));
-                else if (line.contains (GetInfo.K_COOKIE))
+                else if (lineTrim.contains (GetInfo.K_COOKIE))
                     httpRequest.setCookies (getInfo.getCookies (line));
-                else if (line.contains (GetInfo.K_ACCEPT))
+                else if (lineTrim.contains (GetInfo.K_ACCEPT))
                     httpRequest.setAccepts (getInfo.getAccepts (line));
 
             }
