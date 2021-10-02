@@ -34,10 +34,11 @@ public final class Token
                     codeLong.createCode ();
                     code = codeLong.getCode ();
 
-                    final FileWriter writer = new FileWriter (file);
-                    writer.write (code);
-                    writer.flush ();
-                    writer.close ();
+                    try (final FileWriter writer = new FileWriter (file))
+                    {
+                        writer.write (code);
+                        writer.flush ();
+                    }
                 }
                 else code = new String (Files.readAllBytes (file.toPath ()));
 
