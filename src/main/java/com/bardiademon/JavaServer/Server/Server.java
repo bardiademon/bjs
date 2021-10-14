@@ -8,6 +8,7 @@ import com.bardiademon.JavaServer.Server.HttpResponse.HttpResponse;
 import com.bardiademon.JavaServer.bardiademon.Default;
 import com.bardiademon.JavaServer.bardiademon.Path;
 import com.bardiademon.JavaServer.bardiademon.Str;
+import com.sun.istack.internal.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,6 +33,8 @@ public final class Server
 {
 
     private ServerSocket server;
+
+    @Nullable
     private OnError onError;
 
     private OnFile onFile;
@@ -39,6 +42,16 @@ public final class Server
     private final List <Router> routes = new ArrayList <> ();
 
     private Router pageNotFound;
+
+    public void run () throws IOException
+    {
+        run (null);
+    }
+
+    public void run (final int port) throws IOException
+    {
+        run (port , null);
+    }
 
     public void run (final OnError onError) throws IOException
     {
@@ -122,7 +135,8 @@ public final class Server
                 }
                 catch (final IOException e)
                 {
-                    onError.onListenError (e);
+                    if (onError != null) onError.onListenError (e);
+                    else e.printStackTrace ();
                 }
             }
         }).start ();
@@ -142,7 +156,8 @@ public final class Server
                 }
                 catch (final IOException e)
                 {
-                    onError.onGetInputStreamError (e);
+                    if (onError != null) onError.onGetInputStreamError (e);
+                    else e.printStackTrace ();
                 }
                 try
                 {
@@ -150,7 +165,8 @@ public final class Server
                 }
                 catch (final IOException e)
                 {
-                    onError.onGetOutputStreamError (e);
+                    if (onError != null) onError.onGetOutputStreamError (e);
+                    else e.printStackTrace ();
                 }
 
                 if (inputStream != null && outputStream != null)
@@ -186,7 +202,8 @@ public final class Server
                                             }
                                             catch (final Router.HandlerException e)
                                             {
-                                                onError.onGetHandlerException (e);
+                                                if (onError != null) onError.onGetHandlerException (e);
+                                                else HttpResponse.error (outputStream , e);
                                             }
                                             finally
                                             {

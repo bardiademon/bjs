@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +33,11 @@ public final class HttpResponse extends StatusCode
     private Charset charset = StandardCharsets.UTF_8;
 
     private InputStream stream;
+
     private ResponseFile responseFile;
+
+    private String bjsHtmlFilename;
+    private BjsHtml.Param[] paramBjsHtml;
 
     private final List <HttpRequest.Cookie> cookies;
 
@@ -106,6 +111,11 @@ public final class HttpResponse extends StatusCode
         return createHtmlResponse (htmlFile , SC_OK);
     }
 
+    public static HttpResponse createBjsResponse (final String bjsFile , final BjsHtml.Param... params)
+    {
+        return createBjsResponse (bjsFile , SC_OK , params);
+    }
+
     public static HttpResponse createJsonResponse (final Maps maps)
     {
         return createJsonResponse (maps , SC_OK);
@@ -124,6 +134,19 @@ public final class HttpResponse extends StatusCode
         response.setStatusCode (statusCode);
         response.setCharset (StandardCharsets.UTF_8);
         response.setHtmlFile (htmlFile);
+        response.setContentType (HttpRequest.CT_TEXT_HTML);
+
+        return response;
+    }
+
+    public static HttpResponse createBjsResponse (final String bjsFile , final int statusCode , final BjsHtml.Param... params)
+    {
+        final HttpResponse response = new HttpResponse ();
+
+        response.setResponseType (HttpResponse.ResponseType.bjs);
+        response.setStatusCode (statusCode);
+        response.setCharset (StandardCharsets.UTF_8);
+        response.setBjsHtml (bjsFile , params);
         response.setContentType (HttpRequest.CT_TEXT_HTML);
 
         return response;
@@ -468,9 +491,25 @@ public final class HttpResponse extends StatusCode
         return htmlFile;
     }
 
-    public void setHtmlFile (String htmlFile)
+    public void setHtmlFile (String htmlFilename)
     {
-        this.htmlFile = htmlFile;
+        this.htmlFile = htmlFilename;
+    }
+
+    public void setBjsHtml (final String htmlFilename , BjsHtml.Param... params)
+    {
+        this.bjsHtmlFilename = htmlFilename;
+        this.paramBjsHtml = params;
+    }
+
+    public BjsHtml.Param[] getParamBjsHtml ()
+    {
+        return paramBjsHtml;
+    }
+
+    public String getBjsHtmlFilename ()
+    {
+        return bjsHtmlFilename;
     }
 
     public Map <String, String> getHeaders ()
@@ -510,6 +549,6 @@ public final class HttpResponse extends StatusCode
 
     public enum ResponseType
     {
-        html, text, stream, file
+        html, text, stream, file, bjs
     }
 }

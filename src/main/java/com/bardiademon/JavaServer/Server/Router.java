@@ -2,6 +2,7 @@ package com.bardiademon.JavaServer.Server;
 
 import com.bardiademon.JavaServer.Server.HttpRequest.HttpRequest;
 import com.bardiademon.JavaServer.Server.HttpRequest.Method;
+import com.bardiademon.JavaServer.Server.HttpResponse.BjsHtml;
 import com.bardiademon.JavaServer.Server.HttpResponse.HttpResponse;
 import com.bardiademon.JavaServer.Server.HttpResponse.ResponseFile;
 import com.bardiademon.JavaServer.bardiademon.Path;
@@ -60,6 +61,9 @@ public final class Router
                         case file:
                             resFile ();
                             break;
+                        case bjs:
+                            resBJS ();
+                            break;
                         default:
                             throw new HandlerException (HandlerException.Message.invalid_response_type);
                     }
@@ -77,6 +81,33 @@ public final class Router
     {
         final ResponseFile responseFile = httpResponse.getResponseFile ();
         HttpResponse.writeFile (httpRequest.getOutputStream () , responseFile.file , responseFile.filename , httpResponse.getStatusCode () , httpResponse.getContentType ());
+    }
+
+    private void resBJS () throws HandlerException
+    {
+        final String bjsFilename = httpResponse.getBjsHtmlFilename ();
+        if (!Str.isEmpty (bjsFilename))
+        {
+
+            final File bjsFile = new File (Path.GetWithFilename (bjsFilename , "bjs.html" , Path.TEMPLATE));
+            if (bjsFile.exists ())
+            {
+                try
+                {
+                    final BjsHtml bjsHtml = new BjsHtml (bjsFile.getAbsolutePath () , httpResponse.getParamBjsHtml ());
+                    bjsHtml.apply ();
+
+                    write (bjsHtml.getHtml ());
+                }
+                catch (final Exception e)
+                {
+                    throw new HandlerException (e.getMessage ());
+                }
+            }
+            else
+                throw new HandlerException (HandlerException.Message.html_file_not_exists + " {" + bjsFilename + "}");
+        }
+        else throw new HandlerException ("BJS is null!");
     }
 
     private void resHtml () throws HandlerException
@@ -178,7 +209,7 @@ public final class Router
         {
             static_path_is_not_exists, static_path_is_empty, invalid_response_type,
             html_file_is_null, text_is_null, stream_is_null, response_type_is_null,
-            html_file_not_exists, file_not_exists
+            html_file_not_exists, file_not_exists, bjs_file_not_exists
         }
     }
 }
