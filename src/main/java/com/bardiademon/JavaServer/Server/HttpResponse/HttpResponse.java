@@ -98,9 +98,8 @@ public final class HttpResponse extends StatusCode
                 stream.flush ();
                 stream.close ();
             }
-            catch (IOException e)
+            catch (IOException ignored)
             {
-                e.printStackTrace ();
             }
 
         }

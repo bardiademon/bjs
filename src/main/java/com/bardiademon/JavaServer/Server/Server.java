@@ -391,7 +391,6 @@ public final class Server
                             httpRequest.notify ();
                             httpRequest.notifyAll ();
                         }
-
                         return false;
                     }
                 }
@@ -508,7 +507,6 @@ public final class Server
                                         }
 
                                         infoOneFile.set (new StringBuilder ());
-                                        counterGetFile.set (0);
                                         outputStream.set (new ByteArrayOutputStream ());
 
                                         if (line.toLowerCase (Locale.ROOT).equals ("--" + httpRequest.getBoundary () + "--"))
@@ -572,7 +570,7 @@ public final class Server
                     httpRequest.setUserAgent (getInfo.getUserAgent (line));
                 else if (lineTrim.contains (GetInfo.K_ACCEPT_ENCODING))
                     httpRequest.setAcceptEncoding (getInfo.getAcceptEncoding (line));
-                else if (lineTrim.contains (GetInfo.K_CONTENT_TYPE))
+                else if (httpRequest.getContentType () == null && lineTrim.contains (GetInfo.K_CONTENT_TYPE))
                 {
                     final String[] contentTypeAndBoundary = getInfo.getContentTypeAndBoundary (line);
                     httpRequest.setContentType (contentTypeAndBoundary[0]);

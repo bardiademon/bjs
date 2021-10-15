@@ -52,7 +52,6 @@ public final class StreamReader
                                         lineStream = new ByteArrayOutputStream ();
                                     else
                                     {
-
                                         System.gc ();
                                         return;
                                     }

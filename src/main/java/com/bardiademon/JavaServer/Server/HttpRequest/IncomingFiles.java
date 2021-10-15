@@ -62,16 +62,39 @@ public class IncomingFiles
 
     public boolean copy (final String to , final boolean createDir) throws IOException
     {
-        File toFile = new File (to);
-        if (toFile.exists () || (createDir && toFile.mkdirs ()))
-        {
-            final String name = FilenameUtils.getName (to);
-            if (Str.isEmpty (name)) toFile = new File (Path.Get (toFile.getAbsolutePath () , filename));
+        return copy (to , filename , createDir);
+    }
 
-            if (!toFile.exists ()) return (Files.copy (getFile () , toFile.toPath ()) >= len);
-            else throw new IOException ("Filename is exists in path");
+    public boolean copy (final String to , final String filename , final boolean createDir) throws IOException
+    {
+        return copy (to , filename , createDir , false);
+    }
+
+    public boolean copy (final String to , final boolean createDir , final boolean rewrite) throws IOException
+    {
+        return copy (to , filename , createDir , rewrite);
+    }
+
+    public boolean copy (final String to , String filename , final boolean createDir , final boolean rewrite) throws IOException
+    {
+        if (Str.isEmpty (filename)) filename = this.filename;
+
+        if (!Str.isEmpty (filename))
+        {
+            File toFile = new File (to);
+            if (toFile.exists () || (createDir && toFile.mkdirs ()))
+            {
+                toFile = new File (Path.Get (toFile.getAbsolutePath () , filename));
+
+                if (toFile.exists () && (rewrite && !toFile.delete ()))
+                    throw new IOException ("Cannot remove this file <" + toFile.getAbsolutePath () + ">");
+
+                if (!toFile.exists ()) return (Files.copy (getFile () , toFile.toPath ()) >= len);
+                else throw new IOException ("Filename is exists in path");
+            }
+            else throw new IOException ("Path is not exists");
         }
-        else throw new IOException ("Path is not exists");
+        else throw new IOException ("Filename is a empty!");
     }
 
     public static IncomingFiles getIncomingFile (final byte[] bytes , final String info) throws Exception
