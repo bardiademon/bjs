@@ -5,5 +5,5 @@ import com.bardiademon.JavaServer.Server.HttpResponse.HttpResponse;
 
 public interface Controller
 {
-    HttpResponse run (final HttpRequest request);
+    HttpResponse run(final HttpRequest request);
 }
