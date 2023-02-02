@@ -16,19 +16,19 @@ final class Config
 
     private boolean ok;
 
-    Config ()
+    Config()
     {
         try
         {
-            final File configFile = new File (Path.CONFIG_BJS);
-            if (configFile.exists () && configFile.length () > 0)
+            final File configFile = new File(Path.CONFIG_BJS);
+            if (configFile.exists() && configFile.length() > 0)
             {
-                final JSONObject configJson = new JSONObject (new String (Files.readAllBytes (configFile.toPath ()) , StandardCharsets.UTF_8));
-                port = configJson.getInt (KeyJson.port.name ());
+                final JSONObject configJson = new JSONObject(new String(Files.readAllBytes(configFile.toPath()) , StandardCharsets.UTF_8));
+                port = configJson.getInt(KeyJson.port.name());
 
                 try
                 {
-                    host = configJson.getString (KeyJson.host.name ());
+                    host = configJson.getString(KeyJson.host.name());
                 }
                 catch (JSONException ignored)
                 {
@@ -36,25 +36,25 @@ final class Config
 
                 ok = true;
             }
-            else throw new IOException ("config.bjs not found");
+            else throw new IOException("config.bjs not found");
         }
         catch (IOException | JSONException e)
         {
-            e.printStackTrace ();
+            e.printStackTrace();
         }
     }
 
-    public boolean isOk ()
+    public boolean isOk()
     {
         return ok;
     }
 
-    public int getPort ()
+    public int getPort()
     {
         return port;
     }
 
-    public String getHost ()
+    public String getHost()
     {
         return host;
     }

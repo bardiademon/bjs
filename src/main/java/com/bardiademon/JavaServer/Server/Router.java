@@ -21,188 +21,188 @@ public final class Router
     private HttpResponse httpResponse;
     public final Controller controller;
 
-    public Router (final Controller controller , final String[] path , final Method method)
+    public Router(final Controller controller , final String[] path , final Method method)
     {
         this.controller = controller;
         this.path = path;
         this.method = method;
     }
 
-    public static Router setController (final Controller controller)
+    public static Router setController(final Controller controller)
     {
-        return new Router (controller , null , null);
+        return new Router(controller , null , null);
     }
 
-    public void doing (final HttpRequest request , final HttpResponse response) throws HandlerException
+    public void doing(final HttpRequest request , final HttpResponse response) throws HandlerException
     {
         this.httpRequest = request;
         this.httpResponse = response;
 
-        if (!Str.isEmpty (Path.staticPath))
+        if (!Str.isEmpty(Path.staticPath))
         {
-            Path.setTemplatePath ();
+            Path.setTemplatePath();
 
-            final File staticPathFile = new File (Path.staticPath);
-            if (staticPathFile.exists ())
+            final File staticPathFile = new File(Path.staticPath);
+            if (staticPathFile.exists())
             {
-                if (checkResponseType (response))
+                if (checkResponseType(response))
                 {
-                    switch (response.getResponseType ())
+                    switch (response.getResponseType())
                     {
                         case html:
-                            resHtml ();
+                            resHtml();
                             break;
                         case text:
-                            resText ();
+                            resText();
                             break;
                         case stream:
-                            resStream ();
+                            resStream();
                             break;
                         case file:
-                            resFile ();
+                            resFile();
                             break;
                         case bjs:
-                            resBJS ();
+                            resBJS();
                             break;
                         default:
-                            throw new HandlerException (HandlerException.Message.invalid_response_type);
+                            throw new HandlerException(HandlerException.Message.invalid_response_type);
                     }
                 }
                 // else throw new HandlerException from checkResponseType
             }
-            else throw new HandlerException (HandlerException.Message.static_path_is_not_exists);
+            else throw new HandlerException(HandlerException.Message.static_path_is_not_exists);
         }
-        else throw new HandlerException (HandlerException.Message.static_path_is_empty);
+        else throw new HandlerException(HandlerException.Message.static_path_is_empty);
 
-        request.clear ();
+        request.clear();
     }
 
-    private void resFile ()
+    private void resFile()
     {
-        final ResponseFile responseFile = httpResponse.getResponseFile ();
-        HttpResponse.writeFile (httpRequest.getOutputStream () , responseFile.file , responseFile.filename , httpResponse.getStatusCode () , httpResponse.getContentType ());
+        final ResponseFile responseFile = httpResponse.getResponseFile();
+        HttpResponse.writeFile(httpRequest.getOutputStream() , responseFile.file , responseFile.filename , httpResponse.getStatusCode() , httpResponse.getContentType());
     }
 
-    private void resBJS () throws HandlerException
+    private void resBJS() throws HandlerException
     {
-        final String bjsFilename = httpResponse.getBjsHtmlFilename ();
-        if (!Str.isEmpty (bjsFilename))
+        final String bjsFilename = httpResponse.getBjsHtmlFilename();
+        if (!Str.isEmpty(bjsFilename))
         {
 
-            final File bjsFile = new File (Path.GetWithFilename (bjsFilename , "bjs.html" , Path.TEMPLATE));
-            if (bjsFile.exists ())
+            final File bjsFile = new File(Path.GetWithFilename(bjsFilename , "bjs.html" , Path.TEMPLATE));
+            if (bjsFile.exists())
             {
                 try
                 {
-                    final BjsHtml bjsHtml = new BjsHtml (bjsFile.getAbsolutePath () , httpResponse.getParamBjsHtml ());
-                    bjsHtml.apply ();
+                    final BjsHtml bjsHtml = new BjsHtml(bjsFile.getAbsolutePath() , httpResponse.getParamBjsHtml());
+                    bjsHtml.apply();
 
-                    write (bjsHtml.getHtml ());
+                    write(bjsHtml.getHtml());
                 }
                 catch (final Exception e)
                 {
-                    throw new HandlerException (e.getMessage ());
+                    throw new HandlerException(e.getMessage());
                 }
             }
             else
-                throw new HandlerException (HandlerException.Message.html_file_not_exists + " {" + bjsFilename + "}");
+                throw new HandlerException(HandlerException.Message.html_file_not_exists + " {" + bjsFilename + "}");
         }
-        else throw new HandlerException ("BJS is null!");
+        else throw new HandlerException("BJS is null!");
     }
 
-    private void resHtml () throws HandlerException
+    private void resHtml() throws HandlerException
     {
-        final File htmlFile = new File (Path.GetWithFilename (httpResponse.getHtmlFile () , "html" , Path.TEMPLATE));
-        if (htmlFile.exists ())
+        final File htmlFile = new File(Path.GetWithFilename(httpResponse.getHtmlFile() , "html" , Path.TEMPLATE));
+        if (htmlFile.exists())
         {
             try
             {
-                final List <String> lines = Files.readAllLines (htmlFile.toPath ());
+                final List<String> lines = Files.readAllLines(htmlFile.toPath());
 
-                final StringBuilder html = new StringBuilder ();
-                for (final String line : lines) html.append (line);
+                final StringBuilder html = new StringBuilder();
+                for (final String line : lines) html.append(line);
 
-                write (html.toString ());
+                write(html.toString());
             }
             catch (final IOException exception)
             {
-                throw new HandlerException (exception.getMessage ());
+                throw new HandlerException(exception.getMessage());
             }
         }
-        else throw new HandlerException (HandlerException.Message.html_file_not_exists);
+        else throw new HandlerException(HandlerException.Message.html_file_not_exists);
     }
 
-    private void resText () throws HandlerException
+    private void resText() throws HandlerException
     {
-        write (httpResponse.getText ());
+        write(httpResponse.getText());
     }
 
-    private void resStream () throws HandlerException
+    private void resStream() throws HandlerException
     {
-        HttpResponse.write (httpRequest.getOutputStream () , httpResponse , httpResponse.getStream ());
+        HttpResponse.write(httpRequest.getOutputStream() , httpResponse , httpResponse.getStream());
     }
 
-    private boolean checkResponseType (final HttpResponse response) throws HandlerException
+    private boolean checkResponseType(final HttpResponse response) throws HandlerException
     {
-        if (response.getResponseType () != null)
+        if (response.getResponseType() != null)
         {
-            switch (response.getResponseType ())
+            switch (response.getResponseType())
             {
                 case html:
                 {
-                    if (Str.isEmpty (response.getHtmlFile ()))
-                        throw new HandlerException (HandlerException.Message.html_file_is_null);
+                    if (Str.isEmpty(response.getHtmlFile()))
+                        throw new HandlerException(HandlerException.Message.html_file_is_null);
                     break;
                 }
                 case text:
                 {
-                    if (Str.isEmpty (response.getText ()))
-                        throw new HandlerException (HandlerException.Message.text_is_null);
+                    if (Str.isEmpty(response.getText()))
+                        throw new HandlerException(HandlerException.Message.text_is_null);
                     break;
                 }
                 case stream:
                 {
                     try
                     {
-                        if (response.getStream () == null || response.getStream ().available () == 0)
-                            throw new HandlerException (HandlerException.Message.stream_is_null);
+                        if (response.getStream() == null || response.getStream().available() == 0)
+                            throw new HandlerException(HandlerException.Message.stream_is_null);
                     }
                     catch (IOException exception)
                     {
-                        throw new HandlerException (exception.getMessage ());
+                        throw new HandlerException(exception.getMessage());
                     }
                     break;
                 }
                 case file:
                 {
-                    if (httpResponse.getResponseFile () == null || !httpResponse.getResponseFile ().file.exists ())
-                        throw new HandlerException (HandlerException.Message.file_not_exists);
+                    if (httpResponse.getResponseFile() == null || !httpResponse.getResponseFile().file.exists())
+                        throw new HandlerException(HandlerException.Message.file_not_exists);
 
                     break;
                 }
             }
         }
-        else throw new HandlerException (HandlerException.Message.response_type_is_null);
+        else throw new HandlerException(HandlerException.Message.response_type_is_null);
 
 
         return true;
     }
 
-    private void write (final String textHtml) throws HandlerException
+    private void write(final String textHtml) throws HandlerException
     {
-        HttpResponse.write (httpRequest.getOutputStream () , httpResponse , textHtml);
+        HttpResponse.write(httpRequest.getOutputStream() , httpResponse , textHtml);
     }
 
     public static class HandlerException extends Exception
     {
-        HandlerException (final Message message)
+        HandlerException(final Message message)
         {
-            super (message.name ());
+            super(message.name());
         }
 
-        public HandlerException (final String message)
+        public HandlerException(final String message)
         {
-            super (message);
+            super(message);
         }
 
         public enum Message

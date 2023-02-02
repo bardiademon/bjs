@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class Code
 {
-    private List <Character> finalResult;
+    private List<Character> finalResult;
     private boolean endCreatePassword = true;
 
     private int _charInt = 8;
@@ -16,7 +16,7 @@ public class Code
 
     private String code;
 
-    private Code (int NumberOfChar , boolean Number , boolean LowercaseLetters , boolean CapitalLetters , boolean Other)
+    private Code(int NumberOfChar , boolean Number , boolean LowercaseLetters , boolean CapitalLetters , boolean Other)
     {
         if (NumberOfChar > 8) this._charInt = NumberOfChar;
         this.isNumber = Number;
@@ -25,84 +25,84 @@ public class Code
         this.isOther = Other;
     }
 
-    public static long CodeNumber ()
+    public static long CodeNumber()
     {
-        return CodeNumber (0);
+        return CodeNumber(0);
     }
 
-    public static long CodeNumber (int NumberOfChar)
+    public static long CodeNumber(int NumberOfChar)
     {
-        Code code = new Code (NumberOfChar , true , false , false , false);
-        code.createCode ();
-        return (Long.parseLong (code.getCode ()));
+        Code code = new Code(NumberOfChar , true , false , false , false);
+        code.createCode();
+        return (Long.parseLong(code.getCode()));
     }
 
 
-    public static void CreateCodeIsNotExists (Code _Code , int NumberOfCreate , CreateCode _CreateCode)
+    public static void CreateCodeIsNotExists(Code _Code , int NumberOfCreate , CreateCode _CreateCode)
     {
         int counter = 0;
         while ((counter++) <= NumberOfCreate)
         {
-            _Code.createCode ();
-            if (_CreateCode.AfterCreate (_Code.getCode () , (counter >= NumberOfCreate))) return;
+            _Code.createCode();
+            if (_CreateCode.AfterCreate(_Code.getCode() , (counter >= NumberOfCreate))) return;
         }
     }
 
     public interface CreateCode
     {
-        boolean AfterCreate (String code , boolean last);
+        boolean AfterCreate(String code , boolean last);
     }
 
-    public static String CreateCode ()
+    public static String CreateCode()
     {
-        Code code = new Code (8 , true , true , true , true);
-        code.createCode ();
-        return code.getCode ();
+        Code code = new Code(8 , true , true , true , true);
+        code.createCode();
+        return code.getCode();
     }
 
     // OF => Other false
-    public static String CreateCodeOF ()
+    public static String CreateCodeOF()
     {
-        Code code = new Code (8 , true , true , true , false);
-        code.createCode ();
-        return code.getCode ();
+        Code code = new Code(8 , true , true , true , false);
+        code.createCode();
+        return code.getCode();
     }    // OF => Other false
 
-    public static Code GetCodeOF ()
+    public static Code GetCodeOF()
     {
-        return new Code (8 , true , true , true , false);
+        return new Code(8 , true , true , true , false);
     }
 
-    public static Code GetCodeNumber ()
+    public static Code GetCodeNumber()
     {
-        return new Code (8 , true , false , false , false);
+        return new Code(8 , true , false , false , false);
     }
 
-    public static String CreateCodeLogin ()
+    public static String CreateCodeLogin()
     {
-        Code code = new Code (100 , true , true , true , false);
-        code.createCode ();
-        return code.getCode ();
+        Code code = new Code(100 , true , true , true , false);
+        code.createCode();
+        return code.getCode();
     }
 
-    public static Code CreateCodeLong ()
+    public static Code CreateCodeLong()
     {
-        return CreateCodeLong (100);
+        return CreateCodeLong(100);
     }
 
-    public static Code CreateCodeLong (int NumberOfChar)
+    public static Code CreateCodeLong(int NumberOfChar)
     {
-        return new Code (NumberOfChar , true , true , true , false);
+        return new Code(NumberOfChar , true , true , true , false);
     }
 
-    public static String Name ()
+    public static String Name()
     {
-        Code code = new Code (150 , true , true , true , false);
-        code.createCode ();
-        return code.getCode ();
+        Code code = new Code(150 , true , true , true , false);
+        code.createCode();
+        return code.getCode();
     }
 
-    public void createCode ()
+    public void createCode()
     {
         if (endCreatePassword)
         {
@@ -119,84 +119,84 @@ public class Code
 
             if (isNumber)
             {
-                number = createPassNumber (_charInt);
-                number = gettingTheSizeRequested (number , _charInt);
+                number = createPassNumber(_charInt);
+                number = gettingTheSizeRequested(number , _charInt);
             }
 
             if (isLowercaseLetters)
             {
-                lowercaseLetters = createPassCOrLLetters (_charInt , false);
-                lowercaseLetters = gettingTheSizeRequested (lowercaseLetters , _charInt);
+                lowercaseLetters = createPassCOrLLetters(_charInt , false);
+                lowercaseLetters = gettingTheSizeRequested(lowercaseLetters , _charInt);
             }
             if (isCapitalLetters)
             {
-                capitalLetters = createPassCOrLLetters (_charInt , true);
-                capitalLetters = gettingTheSizeRequested (capitalLetters , _charInt);
+                capitalLetters = createPassCOrLLetters(_charInt , true);
+                capitalLetters = gettingTheSizeRequested(capitalLetters , _charInt);
             }
             if (isOther)
             {
-                other = createOther (_charInt);
-                other = gettingTheSizeRequested (other , _charInt);
+                other = createOther(_charInt);
+                other = gettingTheSizeRequested(other , _charInt);
             }
 
 
-            finalResult = new ArrayList <> ();
+            finalResult = new ArrayList<>();
 
-            if (isNumber && number != null) setFinalResult (number);
-            if (isLowercaseLetters && lowercaseLetters != null) setFinalResult (lowercaseLetters);
-            if (isCapitalLetters && capitalLetters != null) setFinalResult (capitalLetters);
-            if (isOther) setFinalResult (other);
+            if (isNumber && number != null) setFinalResult(number);
+            if (isLowercaseLetters && lowercaseLetters != null) setFinalResult(lowercaseLetters);
+            if (isCapitalLetters && capitalLetters != null) setFinalResult(capitalLetters);
+            if (isOther) setFinalResult(other);
 
-            Collections.shuffle (finalResult);
+            Collections.shuffle(finalResult);
 
-            code = gettingTheSizeRequested (_charInt);
+            code = gettingTheSizeRequested(_charInt);
 
             endCreatePassword = true;
         }
 
     }
 
-    private void setFinalResult (String created)
+    private void setFinalResult(String created)
     {
-        char[] chars = created.toCharArray ();
-        for (char aChar : chars) finalResult.add (aChar);
+        char[] chars = created.toCharArray();
+        for (char aChar : chars) finalResult.add(aChar);
     }
 
-    
-    private String createOther (int _char)
+
+    private String createOther(int _char)
     {
-        final String[] other = { "~" , "`" , "!" , "@" , "#" , "$" , "%" , "^" , "&" , "*" , "(" , ")" , "-" , "_" , "=" , "+" , "\\" , "|" , "." };
+        final String[] other = {"~" , "`" , "!" , "@" , "#" , "$" , "%" , "^" , "&" , "*" , "(" , ")" , "-" , "_" , "=" , "+" , "\\" , "|" , "."};
 
-        StringBuilder result = new StringBuilder ();
+        StringBuilder result = new StringBuilder();
 
-        Random random = new Random ();
+        Random random = new Random();
         for (int i = 0; i < _char; i++)
         {
-            int index = random.nextInt (other.length);
-            result.append (other[index]);
+            int index = random.nextInt(other.length);
+            result.append(other[index]);
         }
-        return result.toString ();
+        return result.toString();
     }
 
-    private String createPassNumber (int _char)
+    private String createPassNumber(int _char)
     {
-        Random random = new Random ();
+        Random random = new Random();
 
-        List <Long> lstNumber = new ArrayList <> ();
-        for (int i = 0; i < _char; i++) lstNumber.add (Math.abs (random.nextLong ()));
+        List<Long> lstNumber = new ArrayList<>();
+        for (int i = 0; i < _char; i++) lstNumber.add(Math.abs(random.nextLong()));
 
-        Collections.shuffle (lstNumber);
+        Collections.shuffle(lstNumber);
 
-        StringBuilder number = new StringBuilder ();
-        for (Long integer : lstNumber) number.append (integer);
+        StringBuilder number = new StringBuilder();
+        for (Long integer : lstNumber) number.append(integer);
 
-        return number.toString ();
+        return number.toString();
     }
 
     /**
      * capitalOrLower => true = capital | false = Lower
      */
-    private String createPassCOrLLetters (int _char , boolean capitalOrLower)
+    private String createPassCOrLLetters(int _char , boolean capitalOrLower)
     {
         int max, min;
 
@@ -211,47 +211,47 @@ public class Code
             max = 122;
         }
 
-        Random random = new Random ();
+        Random random = new Random();
 
-        List <String> lstStr = new ArrayList <> ();
+        List<String> lstStr = new ArrayList<>();
         for (int i = 0; i < _char; i++)
         {
-            char c = (char) (random.nextInt ((max - min) + 1) + min);
-            lstStr.add (String.valueOf (c));
+            char c = (char) (random.nextInt((max - min) + 1) + min);
+            lstStr.add(String.valueOf(c));
         }
-        Collections.shuffle (lstStr);
+        Collections.shuffle(lstStr);
 
-        StringBuilder result = new StringBuilder ();
-        for (String str : lstStr) result.append (str);
-        return result.toString ();
+        StringBuilder result = new StringBuilder();
+        for (String str : lstStr) result.append(str);
+        return result.toString();
     }
 
-    
-    private String gettingTheSizeRequested (int _char)
-    {
-        Random random = new Random ();
 
-        StringBuilder result = new StringBuilder ();
+    private String gettingTheSizeRequested(int _char)
+    {
+        Random random = new Random();
+
+        StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < _char; i++)
-            result.append (finalResult.get (random.nextInt (finalResult.size ())));
-        return result.toString ();
+            result.append(finalResult.get(random.nextInt(finalResult.size())));
+        return result.toString();
     }
 
-    
-    private String gettingTheSizeRequested (String created , int _char)
+
+    private String gettingTheSizeRequested(String created , int _char)
     {
-        Random random = new Random ();
+        Random random = new Random();
 
-        StringBuilder result = new StringBuilder ();
+        StringBuilder result = new StringBuilder();
 
-        char[] createdChar = created.toCharArray ();
+        char[] createdChar = created.toCharArray();
         for (int i = 0; i < _char; i++)
-            result.append (createdChar[random.nextInt (createdChar.length)]);
-        return result.toString ();
+            result.append(createdChar[random.nextInt(createdChar.length)]);
+        return result.toString();
     }
 
-    public String getCode ()
+    public String getCode()
     {
         return code;
     }

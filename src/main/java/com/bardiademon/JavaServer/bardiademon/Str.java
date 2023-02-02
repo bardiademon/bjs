@@ -2,13 +2,13 @@ package com.bardiademon.JavaServer.bardiademon;
 
 public final class Str
 {
-    private Str ()
+    private Str()
     {
 
     }
 
-    public static boolean isEmpty (final String str)
+    public static boolean isEmpty(final String str)
     {
-        return (str == null || str.isEmpty ());
+        return (str == null || str.isEmpty());
     }
 }

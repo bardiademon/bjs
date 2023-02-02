@@ -28,7 +28,7 @@ public final class HttpResponse extends StatusCode
     private String text;
     private int statusCode = SC_OK;
     private String contentType = HttpRequest.CT_TEXT_PLAIN;
-    private final Map <String, String> headers;
+    private final Map<String, String> headers;
     private Charset charset = StandardCharsets.UTF_8;
 
     private InputStream stream;
@@ -38,64 +38,64 @@ public final class HttpResponse extends StatusCode
     private String bjsHtmlFilename;
     private BjsHtml.Param[] paramBjsHtml;
 
-    private final List <HttpRequest.Cookie> cookies;
+    private final List<HttpRequest.Cookie> cookies;
 
     // Key
-    private final List <String> removeCookies;
+    private final List<String> removeCookies;
 
     private String htmlFile;
 
     private ResponseType responseType = ResponseType.text;
 
-    public HttpResponse ()
+    public HttpResponse()
     {
-        headers = new HashMap <> ();
-        cookies = new ArrayList <> ();
-        removeCookies = new ArrayList <> ();
+        headers = new HashMap<>();
+        cookies = new ArrayList<>();
+        removeCookies = new ArrayList<>();
     }
 
-    public HttpResponse (final int statusCode)
+    public HttpResponse(final int statusCode)
     {
-        this ();
+        this();
         this.statusCode = statusCode;
     }
 
-    public static void error (final OutputStream stream , final Exception exception)
+    public static void error(final OutputStream stream , final Exception exception)
     {
-        final HttpResponse response = new HttpResponse ();
+        final HttpResponse response = new HttpResponse();
 
-        StackTraceElement[] stackTrace = exception.getStackTrace ();
+        StackTraceElement[] stackTrace = exception.getStackTrace();
 
-        final StringBuilder text = new StringBuilder ("Internal server error\n");
+        final StringBuilder text = new StringBuilder("Internal server error\n");
         if (stackTrace.length > 0)
         {
-            text.append ("Message: ").append (exception.getMessage ()).append ('\n');
+            text.append("Message: ").append(exception.getMessage()).append('\n');
             for (final StackTraceElement stackTraceElement : stackTrace)
             {
-                text.append ("\n\n").append (String.format ("File: %s\nClass: %s\nMethod: %s\nLine: %d"
-                        , stackTraceElement.getFileName () , stackTraceElement.getClassName () , stackTraceElement.getMethodName () ,
-                        stackTraceElement.getLineNumber ()));
+                text.append("\n\n").append(String.format("File: %s\nClass: %s\nMethod: %s\nLine: %d"
+                        , stackTraceElement.getFileName() , stackTraceElement.getClassName() , stackTraceElement.getMethodName() ,
+                        stackTraceElement.getLineNumber()));
             }
 
         }
-        else text.append (exception.getMessage ());
+        else text.append(exception.getMessage());
 
-        response.setText (text.toString ());
-        response.setCharset (StandardCharsets.UTF_8);
-        response.setContentType ("text/plain");
-        response.setStatusCode (500);
+        response.setText(text.toString());
+        response.setCharset(StandardCharsets.UTF_8);
+        response.setContentType("text/plain");
+        response.setStatusCode(500);
 
         try
         {
-            write (stream , response , response.getText ());
+            write(stream , response , response.getText());
         }
         catch (Router.HandlerException handlerException)
         {
             try
             {
-                stream.write (("Error <" + handlerException.getMessage () + ">").getBytes (StandardCharsets.UTF_8));
-                stream.flush ();
-                stream.close ();
+                stream.write(("Error <" + handlerException.getMessage() + ">").getBytes(StandardCharsets.UTF_8));
+                stream.flush();
+                stream.close();
             }
             catch (IOException ignored)
             {
@@ -104,443 +104,443 @@ public final class HttpResponse extends StatusCode
         }
     }
 
-    public static HttpResponse createHtmlResponse (final String htmlFile)
+    public static HttpResponse createHtmlResponse(final String htmlFile)
     {
-        return createHtmlResponse (htmlFile , SC_OK);
+        return createHtmlResponse(htmlFile , SC_OK);
     }
 
-    public static HttpResponse createBjsResponse (final String bjsFile , final BjsHtml.Param... params)
+    public static HttpResponse createBjsResponse(final String bjsFile , final BjsHtml.Param... params)
     {
-        return createBjsResponse (bjsFile , SC_OK , params);
+        return createBjsResponse(bjsFile , SC_OK , params);
     }
 
-    public static HttpResponse createJsonResponse (final Maps maps)
+    public static HttpResponse createJsonResponse(final Maps maps)
     {
-        return createJsonResponse (maps , SC_OK);
+        return createJsonResponse(maps , SC_OK);
     }
 
-    public static HttpResponse createJsonResponse (final Maps maps , final int statusCode)
+    public static HttpResponse createJsonResponse(final Maps maps , final int statusCode)
     {
-        return createTextResponse (maps.toString () , statusCode , HttpRequest.CT_APP_JSON_OR_QL);
+        return createTextResponse(maps.toString() , statusCode , HttpRequest.CT_APP_JSON_OR_QL);
     }
 
-    public static HttpResponse createHtmlResponse (final String htmlFile , final int statusCode)
+    public static HttpResponse createHtmlResponse(final String htmlFile , final int statusCode)
     {
-        final HttpResponse response = new HttpResponse ();
+        final HttpResponse response = new HttpResponse();
 
-        response.setResponseType (HttpResponse.ResponseType.html);
-        response.setStatusCode (statusCode);
-        response.setCharset (StandardCharsets.UTF_8);
-        response.setHtmlFile (htmlFile);
-        response.setContentType (HttpRequest.CT_TEXT_HTML);
+        response.setResponseType(HttpResponse.ResponseType.html);
+        response.setStatusCode(statusCode);
+        response.setCharset(StandardCharsets.UTF_8);
+        response.setHtmlFile(htmlFile);
+        response.setContentType(HttpRequest.CT_TEXT_HTML);
 
         return response;
     }
 
-    public static HttpResponse createBjsResponse (final String bjsFile , final int statusCode , final BjsHtml.Param... params)
+    public static HttpResponse createBjsResponse(final String bjsFile , final int statusCode , final BjsHtml.Param... params)
     {
-        final HttpResponse response = new HttpResponse ();
+        final HttpResponse response = new HttpResponse();
 
-        response.setResponseType (HttpResponse.ResponseType.bjs);
-        response.setStatusCode (statusCode);
-        response.setCharset (StandardCharsets.UTF_8);
-        response.setBjsHtml (bjsFile , params);
-        response.setContentType (HttpRequest.CT_TEXT_HTML);
+        response.setResponseType(HttpResponse.ResponseType.bjs);
+        response.setStatusCode(statusCode);
+        response.setCharset(StandardCharsets.UTF_8);
+        response.setBjsHtml(bjsFile , params);
+        response.setContentType(HttpRequest.CT_TEXT_HTML);
 
         return response;
     }
 
-    public static HttpResponse createResponseFromClass (final Object obj)
+    public static HttpResponse createResponseFromClass(final Object obj)
     {
-        return createResponseFromClass (obj , SC_OK);
+        return createResponseFromClass(obj , SC_OK);
     }
 
-    public static HttpResponse createResponseFromClass (final Object obj , final int statusCode)
+    public static HttpResponse createResponseFromClass(final Object obj , final int statusCode)
     {
-        return createTextResponse (((new Gson ()).toJson (obj)) , statusCode , HttpRequest.CT_APP_JSON_OR_QL);
+        return createTextResponse(((new Gson()).toJson(obj)) , statusCode , HttpRequest.CT_APP_JSON_OR_QL);
     }
 
-    public static HttpResponse createTextResponse (final Object text)
+    public static HttpResponse createTextResponse(final Object text)
     {
-        return createTextResponse (text , SC_OK);
+        return createTextResponse(text , SC_OK);
     }
 
-    public static HttpResponse createTextResponse (final Object text , final int statusCode)
+    public static HttpResponse createTextResponse(final Object text , final int statusCode)
     {
-        return createTextResponse (text , statusCode , HttpRequest.CT_TEXT_PLAIN);
+        return createTextResponse(text , statusCode , HttpRequest.CT_TEXT_PLAIN);
     }
 
-    public static HttpResponse createTextResponse (final Object text , final String contentType)
+    public static HttpResponse createTextResponse(final Object text , final String contentType)
     {
-        return createTextResponse (text , SC_OK , contentType);
+        return createTextResponse(text , SC_OK , contentType);
     }
 
-    public static HttpResponse createTextResponse (final Object text , final int statusCode , final String contentType)
+    public static HttpResponse createTextResponse(final Object text , final int statusCode , final String contentType)
     {
-        return createTextResponse (((text == null) ? "null" : text.toString ()) , statusCode , contentType);
+        return createTextResponse(((text == null) ? "null" : text.toString()) , statusCode , contentType);
     }
 
-    public static HttpResponse createTextResponse (final String text)
+    public static HttpResponse createTextResponse(final String text)
     {
-        return createTextResponse (text , SC_OK);
+        return createTextResponse(text , SC_OK);
     }
 
-    public static HttpResponse createTextResponse (final String text , final int statusCode)
+    public static HttpResponse createTextResponse(final String text , final int statusCode)
     {
-        return createTextResponse (text , statusCode , HttpRequest.CT_TEXT_PLAIN);
+        return createTextResponse(text , statusCode , HttpRequest.CT_TEXT_PLAIN);
     }
 
-    public static HttpResponse createTextResponse (final String text , final String contentType)
+    public static HttpResponse createTextResponse(final String text , final String contentType)
     {
-        return createTextResponse (text , SC_OK , contentType);
+        return createTextResponse(text , SC_OK , contentType);
     }
 
-    public static HttpResponse createTextResponse (final String text , final int statusCode , final String contentType)
+    public static HttpResponse createTextResponse(final String text , final int statusCode , final String contentType)
     {
-        final HttpResponse response = new HttpResponse ();
+        final HttpResponse response = new HttpResponse();
 
-        response.setResponseType (HttpResponse.ResponseType.text);
-        response.setStatusCode (statusCode);
-        response.setCharset (StandardCharsets.UTF_8);
-        response.setText (text);
-        response.setContentType (contentType);
+        response.setResponseType(HttpResponse.ResponseType.text);
+        response.setStatusCode(statusCode);
+        response.setCharset(StandardCharsets.UTF_8);
+        response.setText(text);
+        response.setContentType(contentType);
 
         return response;
     }
 
-    public static HttpResponse createStreamResponse (final ResponseFile responseFile) throws IOException
+    public static HttpResponse createStreamResponse(final ResponseFile responseFile) throws IOException
     {
-        return createStreamResponse (responseFile , SC_OK);
+        return createStreamResponse(responseFile , SC_OK);
     }
 
-    public static HttpResponse createStreamResponse (final ResponseFile responseFile , final int statusCode) throws IOException
+    public static HttpResponse createStreamResponse(final ResponseFile responseFile , final int statusCode) throws IOException
     {
-        return createStreamResponse (responseFile , statusCode , null);
+        return createStreamResponse(responseFile , statusCode , null);
     }
 
-    public static HttpResponse createStreamResponse (final ResponseFile responseFile , final String contentType) throws IOException
+    public static HttpResponse createStreamResponse(final ResponseFile responseFile , final String contentType) throws IOException
     {
-        return createStreamResponse (responseFile , SC_OK , contentType);
+        return createStreamResponse(responseFile , SC_OK , contentType);
     }
 
-    public static HttpResponse createStreamResponse (final ResponseFile responseFile , final int statusCode , final String contentType) throws IOException
+    public static HttpResponse createStreamResponse(final ResponseFile responseFile , final int statusCode , final String contentType) throws IOException
     {
-        if (responseFile.file.exists ())
+        if (responseFile.file.exists())
         {
-            final HttpResponse response = new HttpResponse (statusCode);
-            response.setCharset (StandardCharsets.UTF_8);
-            response.setResponseFile (responseFile);
-            response.setContentType (contentType);
-            response.setResponseType (ResponseType.file);
+            final HttpResponse response = new HttpResponse(statusCode);
+            response.setCharset(StandardCharsets.UTF_8);
+            response.setResponseFile(responseFile);
+            response.setContentType(contentType);
+            response.setResponseType(ResponseType.file);
             return response;
         }
 
-        throw new IOException ("File not exists!");
+        throw new IOException("File not exists!");
     }
 
-    public static HttpResponse createStreamResponse (final InputStream stream , final String contentType)
+    public static HttpResponse createStreamResponse(final InputStream stream , final String contentType)
     {
-        return createStreamResponse (stream , SC_OK , contentType);
+        return createStreamResponse(stream , SC_OK , contentType);
     }
 
-    public static HttpResponse createStreamResponse (final InputStream stream , final int statusCode)
+    public static HttpResponse createStreamResponse(final InputStream stream , final int statusCode)
     {
-        return createStreamResponse (stream , statusCode , null);
+        return createStreamResponse(stream , statusCode , null);
     }
 
-    public static HttpResponse createStreamResponse (final InputStream stream , final int statusCode , final String contentType)
+    public static HttpResponse createStreamResponse(final InputStream stream , final int statusCode , final String contentType)
     {
-        final HttpResponse response = new HttpResponse (statusCode);
-        response.setCharset (StandardCharsets.UTF_8);
-        response.setStream (stream);
-        response.setContentType (contentType);
-        response.setResponseType (ResponseType.stream);
+        final HttpResponse response = new HttpResponse(statusCode);
+        response.setCharset(StandardCharsets.UTF_8);
+        response.setStream(stream);
+        response.setContentType(contentType);
+        response.setResponseType(ResponseType.stream);
         return response;
     }
 
-    public static void notFoundPage (final OutputStream outputStream) throws Router.HandlerException
+    public static void notFoundPage(final OutputStream outputStream) throws Router.HandlerException
     {
-        writeText (outputStream , "404 Page not found" , SC_NOT_FOUND);
+        writeText(outputStream , "404 Page not found" , SC_NOT_FOUND);
     }
 
-    public static void bardiademon (final OutputStream outputStream) throws Router.HandlerException
+    public static void bardiademon(final OutputStream outputStream) throws Router.HandlerException
     {
-        writeText (outputStream , "bardiademon" , SC_OK);
+        writeText(outputStream , "bardiademon" , SC_OK);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file)
+    public static void writeFile(final OutputStream outputStream , final File file)
     {
-        writeFile (outputStream , file , file.getName () , SC_OK , null);
+        writeFile(outputStream , file , file.getName() , SC_OK , null);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file , final String filename)
+    public static void writeFile(final OutputStream outputStream , final File file , final String filename)
     {
-        writeFile (outputStream , file , SC_OK);
+        writeFile(outputStream , file , SC_OK);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file , final int statusCode)
+    public static void writeFile(final OutputStream outputStream , final File file , final int statusCode)
     {
-        writeFile (outputStream , file , file.getName () , statusCode);
+        writeFile(outputStream , file , file.getName() , statusCode);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file , final String filename , final int statusCode)
+    public static void writeFile(final OutputStream outputStream , final File file , final String filename , final int statusCode)
     {
-        writeFile (outputStream , file , filename , statusCode , null);
+        writeFile(outputStream , file , filename , statusCode , null);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file , final int statusCode , final String contentType)
+    public static void writeFile(final OutputStream outputStream , final File file , final int statusCode , final String contentType)
     {
-        writeFile (outputStream , file , file.getName () , statusCode , contentType);
+        writeFile(outputStream , file , file.getName() , statusCode , contentType);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file , final String filename , final String contentType)
+    public static void writeFile(final OutputStream outputStream , final File file , final String filename , final String contentType)
     {
-        writeFile (outputStream , file , filename , SC_OK , contentType);
+        writeFile(outputStream , file , filename , SC_OK , contentType);
     }
 
-    public static void writeFile (final OutputStream outputStream , final File file , String filename , final int statusCode , String contentType)
+    public static void writeFile(final OutputStream outputStream , final File file , String filename , final int statusCode , String contentType)
     {
-        if (Str.isEmpty (contentType))
+        if (Str.isEmpty(contentType))
         {
             try
             {
-                contentType = Files.probeContentType (file.toPath ());
+                contentType = Files.probeContentType(file.toPath());
             }
             catch (IOException ignored)
             {
             }
         }
 
-        if (Str.isEmpty (filename)) filename = file.getName ();
+        if (Str.isEmpty(filename)) filename = file.getName();
 
-        final HttpResponse response = new HttpResponse ();
-        response.setContentType (contentType);
-        response.setStatusCode (statusCode);
-        response.setCharset (StandardCharsets.UTF_8);
-        response.setHeader ("filename" , filename);
+        final HttpResponse response = new HttpResponse();
+        response.setContentType(contentType);
+        response.setStatusCode(statusCode);
+        response.setCharset(StandardCharsets.UTF_8);
+        response.setHeader("filename" , filename);
 
-        try (final InputStream stream = new FileInputStream (file))
+        try (final InputStream stream = new FileInputStream(file))
         {
-            outputStream.write (getHeader (response , file.length ()).getBytes ());
+            outputStream.write(getHeader(response , file.length()).getBytes());
 
             byte[] bytes = new byte[1024 * 5];
-            for (int len = 0; len != -1; len = stream.read (bytes)) outputStream.write (bytes , 0 , len);
+            for (int len = 0; len != -1; len = stream.read(bytes)) outputStream.write(bytes , 0 , len);
 
-            outputStream.flush ();
-            outputStream.close ();
+            outputStream.flush();
+            outputStream.close();
         }
         catch (IOException ignored)
         {
         }
     }
 
-    public static void writeText (final OutputStream outputStream , final String text , final int statusCode) throws Router.HandlerException
+    public static void writeText(final OutputStream outputStream , final String text , final int statusCode) throws Router.HandlerException
     {
-        final HttpResponse response = createTextResponse (text , statusCode);
-        write (outputStream , response , response.getText ());
+        final HttpResponse response = createTextResponse(text , statusCode);
+        write(outputStream , response , response.getText());
     }
 
-    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final String textHtml) throws Router.HandlerException
+    public static void write(final OutputStream outputStream , final HttpResponse httpResponse , final String textHtml) throws Router.HandlerException
     {
         try
         {
-            write (outputStream , (getHeader (httpResponse , textHtml.length ()) + new String (textHtml.getBytes (httpResponse.getCharset ()))).getBytes ());
+            write(outputStream , (getHeader(httpResponse , textHtml.length()) + new String(textHtml.getBytes(httpResponse.getCharset()))).getBytes());
         }
         catch (final Exception exception)
         {
-            throw new Router.HandlerException (exception.getMessage ());
+            throw new Router.HandlerException(exception.getMessage());
         }
     }
 
-    public static void write (final OutputStream outputStream , final HttpResponse httpResponse , final InputStream stream) throws Router.HandlerException
+    public static void write(final OutputStream outputStream , final HttpResponse httpResponse , final InputStream stream) throws Router.HandlerException
     {
         try
         {
-            outputStream.write (getHeader (httpResponse , stream.available ()).getBytes ());
+            outputStream.write(getHeader(httpResponse , stream.available()).getBytes());
 
             final byte[] buffer = new byte[1027 * 5];
-            for (int len = 0; len != -1; len = stream.read (buffer)) outputStream.write (buffer , 0 , len);
+            for (int len = 0; len != -1; len = stream.read(buffer)) outputStream.write(buffer , 0 , len);
 
-            outputStream.flush ();
-            outputStream.close ();
+            outputStream.flush();
+            outputStream.close();
         }
         catch (final IOException exception)
         {
-            throw new Router.HandlerException (exception.getMessage ());
+            throw new Router.HandlerException(exception.getMessage());
         }
     }
 
-    private static String getHeader (final HttpResponse httpResponse , final long len)
+    private static String getHeader(final HttpResponse httpResponse , final long len)
     {
-        final StringBuilder response = new StringBuilder (String.format (
+        final StringBuilder response = new StringBuilder(String.format(
                 "HTTP/1.1 %d\r\ndate:%s\r\nX-Powered-By:%s\r\nConnection:Upgrade\r\nUpgrade: websocket\r\nContent-Type:%s; charset:%s\r\nContent-Length:%d" ,
-                httpResponse.getStatusCode () ,
-                LocalDateTime.now ().format (Time.getHeaderDateFormat ()) ,
+                httpResponse.getStatusCode() ,
+                LocalDateTime.now().format(Time.getHeaderDateFormat()) ,
                 Default.X_POWERED_BY ,
-                httpResponse.getContentType () ,
-                httpResponse.getCharset ().toString ().toLowerCase (Locale.ROOT) , len));
+                httpResponse.getContentType() ,
+                httpResponse.getCharset().toString().toLowerCase(Locale.ROOT) , len));
 
-        if (httpResponse.getHeaders ().size () > 0)
+        if (httpResponse.getHeaders().size() > 0)
         {
-            final Set <Map.Entry <String, String>> headers = httpResponse.getHeaders ().entrySet ();
-            for (final Map.Entry <String, String> entries : headers)
-                response.append (String.format ("\r\n%s:%s" , entries.getKey () , entries.getValue ()));
+            final Set<Map.Entry<String, String>> headers = httpResponse.getHeaders().entrySet();
+            for (final Map.Entry<String, String> entries : headers)
+                response.append(String.format("\r\n%s:%s" , entries.getKey() , entries.getValue()));
         }
 
-        if (httpResponse.getCookies ().size () > 0)
+        if (httpResponse.getCookies().size() > 0)
         {
-            final List <HttpRequest.Cookie> cookies = httpResponse.getCookies ();
+            final List<HttpRequest.Cookie> cookies = httpResponse.getCookies();
             for (final HttpRequest.Cookie cookie : cookies)
             {
-                response.append (String.format ("\r\nSet-Cookie:%s=%s; expires=%s; path=%s; domain=%s;" ,
+                response.append(String.format("\r\nSet-Cookie:%s=%s; expires=%s; path=%s; domain=%s;" ,
                         cookie.key , cookie.value , cookie.expires , cookie.path , cookie.domain));
             }
         }
 
-        if (httpResponse.getRemoveCookies ().size () > 0)
+        if (httpResponse.getRemoveCookies().size() > 0)
         {
-            final List <String> cookies = httpResponse.getRemoveCookies ();
+            final List<String> cookies = httpResponse.getRemoveCookies();
             for (final String cookieKey : cookies)
             {
-                response.append (String.format ("\r\nSet-Cookie:%s=deleted; expires=%s; path=/ ;" ,
-                        cookieKey , LocalDateTime.now ().minusYears (100).format (Time.getHeaderDateFormat ())));
+                response.append(String.format("\r\nSet-Cookie:%s=deleted; expires=%s; path=/ ;" ,
+                        cookieKey , LocalDateTime.now().minusYears(100).format(Time.getHeaderDateFormat())));
             }
         }
 
-        response.append ("\r\n\r\n");
+        response.append("\r\n\r\n");
 
-        return response.toString ();
+        return response.toString();
     }
 
-    private static void write (final OutputStream outputStream , byte[] bytes) throws IOException
+    private static void write(final OutputStream outputStream , byte[] bytes) throws IOException
     {
-        outputStream.write (bytes);
-        outputStream.flush ();
-        outputStream.close ();
+        outputStream.write(bytes);
+        outputStream.flush();
+        outputStream.close();
     }
 
-    public void setCookies (HttpRequest.Cookie cookie)
+    public void setCookies(HttpRequest.Cookie cookie)
     {
-        this.cookies.add (cookie);
+        this.cookies.add(cookie);
     }
 
-    public void setRemoveCookies (String cookieKey)
+    public void setRemoveCookies(String cookieKey)
     {
-        this.removeCookies.add (cookieKey);
+        this.removeCookies.add(cookieKey);
     }
 
-    public List <HttpRequest.Cookie> getCookies ()
+    public List<HttpRequest.Cookie> getCookies()
     {
         return cookies;
     }
 
-    public List <String> getRemoveCookies ()
+    public List<String> getRemoveCookies()
     {
         return removeCookies;
     }
 
-    public void setHeader (final String key , final String path)
+    public void setHeader(final String key , final String path)
     {
-        headers.put (key , path);
+        headers.put(key , path);
     }
 
-    public String getText ()
+    public String getText()
     {
         return text;
     }
 
-    public void setText (String text)
+    public void setText(String text)
     {
         this.text = text;
     }
 
-    public int getStatusCode ()
+    public int getStatusCode()
     {
         return statusCode;
     }
 
-    public void setStatusCode (int statusCode)
+    public void setStatusCode(int statusCode)
     {
         this.statusCode = statusCode;
     }
 
-    public String getContentType ()
+    public String getContentType()
     {
         return contentType;
     }
 
-    public void setContentType (String contentType)
+    public void setContentType(String contentType)
     {
         this.contentType = contentType;
     }
 
-    public Charset getCharset ()
+    public Charset getCharset()
     {
         return charset;
     }
 
-    public void setCharset (Charset charset)
+    public void setCharset(Charset charset)
     {
         this.charset = charset;
     }
 
-    public String getHtmlFile ()
+    public String getHtmlFile()
     {
         return htmlFile;
     }
 
-    public void setHtmlFile (String htmlFilename)
+    public void setHtmlFile(String htmlFilename)
     {
         this.htmlFile = htmlFilename;
     }
 
-    public void setBjsHtml (final String htmlFilename , BjsHtml.Param... params)
+    public void setBjsHtml(final String htmlFilename , BjsHtml.Param... params)
     {
         this.bjsHtmlFilename = htmlFilename;
         this.paramBjsHtml = params;
     }
 
-    public BjsHtml.Param[] getParamBjsHtml ()
+    public BjsHtml.Param[] getParamBjsHtml()
     {
         return paramBjsHtml;
     }
 
-    public String getBjsHtmlFilename ()
+    public String getBjsHtmlFilename()
     {
         return bjsHtmlFilename;
     }
 
-    public Map <String, String> getHeaders ()
+    public Map<String, String> getHeaders()
     {
         return headers;
     }
 
-    public void setResponseType (ResponseType responseType)
+    public void setResponseType(ResponseType responseType)
     {
         this.responseType = responseType;
     }
 
-    public InputStream getStream ()
+    public InputStream getStream()
     {
         return stream;
     }
 
-    public void setStream (InputStream stream)
+    public void setStream(InputStream stream)
     {
         this.stream = stream;
     }
 
-    public void setResponseFile (final ResponseFile responseFile)
+    public void setResponseFile(final ResponseFile responseFile)
     {
         this.responseFile = responseFile;
     }
 
-    public ResponseFile getResponseFile ()
+    public ResponseFile getResponseFile()
     {
         return responseFile;
     }
 
-    public ResponseType getResponseType ()
+    public ResponseType getResponseType()
     {
         return responseType;
     }

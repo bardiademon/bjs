@@ -44,7 +44,7 @@ public class StatusCode
     public static final int SC_GATEWAY_TIMEOUT = 504;
     public static final int SC_HTTP_VERSION_NOT_SUPPORTED = 505;
 
-    protected StatusCode ()
+    protected StatusCode()
     {
     }
 }
